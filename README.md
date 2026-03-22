@@ -166,6 +166,17 @@ These aren't tools. They're the missing vocabulary for problems that don't fit i
 
 ---
 
+### 🏗️ Agent Protocol Architect
+**What it solves:** The "which protocol do I use?" paralysis. MCP, A2A, UCP, AP2, A2UI, AG-UI—six protocols, six layers, zero guidance on when to use which.
+
+**Why it matters:** Derived from Google's Developer Guide to AI Agent Protocols and enriched with 39+ developer discussions. Provides a six-layer protocol stack model, a decision matrix, a 12-point red-team checklist, and a phased implementation blueprint. Eliminates custom integration sprawl and the "God Agent" anti-pattern.
+
+**The Unlock:** You stop guessing which protocol to adopt. The matrix tells you which layer you're building, the checklist catches architectural debt before it ships, and the blueprint phases your rollout from MCP (data) through AG-UI (streaming).
+
+*Status: PRODUCTION | Valuation: $30–80M*
+
+---
+
 ## 🛡️ A.E.G.I.S. Standard
 **Agentic Epistemology & Guardrail Implementation Spec**
 
