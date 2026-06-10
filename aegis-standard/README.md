@@ -8,11 +8,15 @@
 
 ---
 
-## Abstract
+## Skillpack Signatures
 
-The A.E.G.I.S. Standard defines a security framework for codebases generated or maintained by AI agents. Historical cyber disasters (XZ Utils backdoor, SolarWinds supply chain attack, Log4Shell) reveal vulnerability patterns that emerge when human oversight diminishes. As AI agents assume more development responsibility, these patterns intensify. A.E.G.I.S. translates historical threats into detection heuristics for agentic codebases.
-
-**Positioning**: A.E.G.I.S. is to AI-generated code what OWASP is to web security.
+| Skill | Signature | Description |
+|-------|-----------|-------------|
+| **aegis.audit()** | `target: string` | Conducts OWASP Top 10 and STRIDE threat models with concrete exploits. |
+| **aegis.freeze()** | `files: string[]` | Locks specific files or folders from any AI edits. |
+| **aegis.careful()** | `none` | High-safety mode: prevents destructive commands and limits scope. |
+| **aegis.guard()** | `none` | Activates full safety guardrails for production-critical work. |
+| **aegis.verify()** | `files: string[]` | Executes the 5-spec A.E.G.I.S. validation (Unicode, AST, Dependencies, etc). |
 
 ---
 

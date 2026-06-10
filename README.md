@@ -109,6 +109,15 @@ These aren't tools. They're the missing vocabulary for problems that don't fit i
 
 *Status: POC (Functional Prototype) | Valuation: $15–35M*
 
+### 🕹️ Operator Protocol
+**What it solves:** The gap between human intent and AI execution. Requirements that are underspecified or strategically weak.
+
+**Why it matters:** Most AI tools are "doers." The Operator is a "thinker." It translates high-level mission objectives into formal execution plans through a multi-stage review pipeline (CEO, Eng, Design).
+
+**The Unlock:** Strategic oversight. You stop managing snippets and start managing outcomes by locking in verified `plan.md` specs before coding begins.
+
+*Status: PRODUCTION | Valuation: $35–85M*
+
 ---
 
 ### 🚄 Conductor (The Hybrid Drive)
@@ -194,7 +203,7 @@ These aren't tools. They're the missing vocabulary for problems that don't fit i
 
 Every skill pack solves the same root problem: **the gap between what AI can do and what you can trust it to do**.
 
-CCP makes AI remember. Librarian makes decisions legible. Ghost makes context ambient. COE makes value measurable. MNEME makes memory portable. A.E.G.I.S. makes generated code trustworthy.
+Operator makes intent strategic. Conductor makes implementation verified. Librarian makes decisions legible. Ghost makes context ambient. COE makes value measurable. MNEME makes memory portable. A.E.G.I.S. makes generated code trustworthy.
 
 **You're not buying tools. You're buying confidence.**
 
@@ -279,4 +288,4 @@ All skill pack specifications © 2026 Third Signal.
 ---
 
 **Maintained by**: [Third Signal](https://thirdsignal.ai)
-**Last Updated**: 2026-03-12
+**Last Updated**: 2026-04-03

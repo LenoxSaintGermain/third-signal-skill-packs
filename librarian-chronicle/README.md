@@ -38,6 +38,17 @@ Autonomous documentation & intent-preserved decision log. Every WHY and HOW pres
 
 ---
 
+## Skillpack Signatures
+
+| Skill | Signature | Description |
+|-------|-----------|-------------|
+| **librarian.document()** | `none` | Updates all project docs (README, ARCHITECTURE) to match shipped code. |
+| **librarian.learn()** | `none` | Manages and compounds project-specific patterns and preferences. |
+| **librarian.record()** | `why: string` | Creates a DECISION_RECORD for high-value intent preservation. |
+| **librarian.sync()** | `none` | Dual-write sync of local ledger to Firestore Chronicle. |
+
+---
+
 ## Architecture
 
 ```

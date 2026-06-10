@@ -35,6 +35,11 @@ The Hybrid Drive workflow is a 3-stage process that ensures implementation integ
 | **conductor.implement()** | `step: number` | Executes a specific step of the implementation plan. |
 | **conductor.verify()** | `none` | Runs the TDD cycle (test + tsc) to ensure no regressions. |
 | **conductor.sync()** | `none` | Handoff to the Librarian to update the global ledger. |
+| **conductor.investigate()** | `issue: string` | Systematic root-cause debugging. No fixes without investigation. |
+| **conductor.qa()** | `feature: string` | Full QA cycle: find bugs, atomic fix, re-verify, regression tests. |
+| **conductor.ship()** | `none` | Synchronizes main, runs final audits, and opens PRs. |
+| **conductor.land()** | `pr: string` | Merges PR, waits for deploy, and verifies production health. |
+| **conductor.monitor()** | `none` | Canary/SRE monitoring for post-deployment health and performance. |
 
 ---
 
