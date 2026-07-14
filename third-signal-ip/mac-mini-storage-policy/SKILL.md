@@ -27,9 +27,10 @@ Everything else → `/Volumes/Third Signal Lab HD/`
 ```
 /Volumes/Third Signal Lab HD/
 ├── ollama/models/              # Ollama model weights (symlinked from ~/.ollama/models)
+├── Omi/Videos/                 # Native Omi macOS app screen recordings (symlinked)
 ├── hermes/
 │   ├── data/                   # HERMES_HOME for profiles on external drive
-│   ├── workspaces/
+│   ├── workspaces/             # DEFAULT ROOT for new agentic pipelines and media workflows (e.g. Studio-Pod)
 │   └── archives/
 ├── archivist/                  # Wearable data exports (Limitless, OMI)
 │   ├── limitless/
@@ -63,14 +64,17 @@ ln -sfn "/Volumes/Third Signal Lab HD/<target>" "<internal path>"
 - `~/.hermes/profiles/omi-dev` → `/Volumes/Third Signal Lab HD/hermes/data/profiles/omi-dev`
 - `~/.hermes/profiles/librarian` → `/Volumes/Third Signal Lab HD/hermes/data/profiles/librarian`
 - `~/.hermes/profiles/janitor` → `/Volumes/Third Signal Lab HD/hermes/data/profiles/janitor`
+- `~/.hermes/profiles/manus` → `/Volumes/Third Signal Lab HD/hermes/data/profiles/manus`
+- `~/Library/Application Support/Omi/users/ESLtLAnd3RgBi0ThzKNtulZACF03/Videos` → `/Volumes/Third Signal Lab HD/Omi/Videos`
 
 ## Rules for All Agents
 
 1. **Never write bulk data to the internal SSD.** If your output is >10MB or will grow over time, put it on the external drive.
-2. **Check free space before large writes:** `df -h "/Volumes/Third Signal Lab HD/"` and `df -h /`
-3. **Use dated subdirectories** for exports: `YYYY/MM/DD/` under the appropriate top-level folder.
-4. **If the external drive is not mounted**, stop and alert the operator. Do NOT fall back to writing to the internal SSD.
-5. **Verify symlinks before writing:** if you're writing to a path that should be symlinked, confirm the symlink is intact first.
+2. **Media/Agentic Pipelines:** Never create new video/filmmaking/media workspaces in `/Volumes/Mini_2T/lenoxparis data/Dev/` or `~/Dev/`. They must be initialized directly in `/Volumes/Third Signal Lab HD/hermes/workspaces/` (with a symlink back to Dev if needed for IDE access).
+3. **Check free space before large writes:** `df -h "/Volumes/Third Signal Lab HD/"` and `df -h /`
+4. **Use dated subdirectories** for exports: `YYYY/MM/DD/` under the appropriate top-level folder.
+5. **If the external drive is not mounted**, stop and alert the operator. Do NOT fall back to writing to the internal SSD.
+6. **Verify symlinks before writing:** if you're writing to a path that should be symlinked, confirm the symlink is intact first.
 
 ## Drive Health Check
 

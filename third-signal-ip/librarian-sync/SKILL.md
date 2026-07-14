@@ -61,3 +61,9 @@ You **MUST** use this skill immediately after completing any Epic, Feature, or s
      - "Compression status: Tier-2-Recommended" (if ≥ 2000 lines)
      - "Compression status: Tier-3-Recommended" (if ≥ 5000 lines)
    - If compression was triggered, include token reduction achieved
+
+## Troubleshooting
+
+- **GCP ADC Expiration (`invalid_rapt` / `invalid_grant`):** If Librarian cron jobs fail or stall, check `logs/librarian.log` for `invalid_rapt` or `invalid_grant`. This means Google Cloud Application Default Credentials have expired, blocking Firestore Admin SDK access.
+  - **Fix:** The operator must run `gcloud auth application-default login`.
+  - **Monitoring:** The `GCP ADC Auth Watchdog` cron job checks for this hourly. Refer to the `gcp-adc-recovery` skill for detailed recovery steps.

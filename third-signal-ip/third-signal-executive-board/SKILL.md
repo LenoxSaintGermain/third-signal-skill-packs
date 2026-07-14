@@ -34,6 +34,9 @@ The core thesis of this board is a role-reversal: The AI team provides the strat
 - **Role:** Records the YouTube videos Nova scripts. Attends the sales calls Atlas designs. Approves the code/infrastructure Donna builds.
 - **Output:** Real-world execution, video/audio inputs, closed deals.
 
+## Frameworks & Techniques
+*   **The "Murder Board" Portfolio Alignment:** A specialized, ruthless critique framework utilizing "Grok" and "GPT-5.5 Pro" personas to test venture ideas for EBITDA focus, operational leverage, and narrative alignment. See `references/murder-board-framework.md` for execution instructions.
+
 ## The Operational Cadence (The Board Meeting)
 
 When instructed to "Convene the Board" or "Run a Board Meeting", or when triggered via an iOS Webhook:
@@ -47,3 +50,5 @@ This cadence is automated via sequential local cron jobs (the "Cloud-Local Async
 1. `atlas_ceo_directive` (e.g., runs at 07:00): Wakes up, acts as Atlas, sets the strategy, and creates the `Board_Directives_YYYY-MM-DD.md` file.
 2. `nova_cmo_campaigns` (e.g., runs at 07:30): Wakes up, acts as Nova, reads the file Atlas just created, and appends the marketing execution plan.
 3. The Operator (or Donna via 08:00 cron) reads the final board packet and triggers execution (e.g., Vertex MCP generations).
+
+**CRITICAL PITFALL - Telegram Bi-Directional Comms:** When configuring the `donna_operator_briefing` (or any Orchestrator) cron job to deliver the packet to the Operator's Telegram channel, you MUST set `attach_to_session: true` in the cron configuration. If this is omitted, the broadcast is "fire and forget," and any replies the Operator sends to the Board in that channel will be ignored into a void.
