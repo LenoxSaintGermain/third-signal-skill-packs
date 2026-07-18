@@ -99,6 +99,10 @@ To discover which profile has an active, authenticated session for a specific do
 sqlite3 "/Users/lenoxparis/Library/Application Support/Google/Chrome/<Profile Name>/Network/Cookies" "SELECT host_key FROM cookies WHERE host_key LIKE '%claude.ai%';"
 ```
 
+## Pitfalls & Architectural Breakthroughs (The Chrome Bridge)
+We discovered and resolved critical boundaries when building the native Chrome Extension to local HTTP bridge on port `4114`. Refer to the rich engineering reference file:
+*   `references/native-messaging-http-bridge.md` — Explains TypeScript compilation failures in Chrome, resolving CommonJS `.cjs` clashes under ES Module projects, preventing port `4114` `EADDRINUSE` lockups on extension reload, and bypassing Chrome Content Security Policy (CSP) styling restrictions.
+
 ## Safety & Boundaries
 - Never attempt to cross-pollinate cookies, history, or credentials between these profiles.
 - Keep data isolation strict. If the Operator is in "Jimmy" profile, focus all research and code-deployments on Career Concierge. If in "Default", focus on Third Signal.
