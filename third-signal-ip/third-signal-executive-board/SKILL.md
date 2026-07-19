@@ -44,7 +44,9 @@ When instructed to "Convene the Board" or "Run a Board Meeting", or when trigger
 1. **CEO (Atlas)** reviews the current MRR and pipeline, then issues the strategic directive for the week.
 2. **CMO (Nova)** translates that directive into a specific marketing/content campaign.
 3. **Donna** synthesizes this into a markdown checklist named `Board_Directives_YYYY-MM-DD.md` and saves it to the local Drive (e.g., `/Users/lenoxparis/My Drive (treble.design@gmail.com)/Third Signal Lab/Executive_Board/`).
-4. **Donna** pushes the briefing directly to the Telegram Command Group so the Operator receives it on mobile.
+4. **Donna** creates one idempotent `Needs You · …` Kanban task for every decision or actionable recommendation in the packet. Each task starts `blocked` and carries a fenced `operator-request` with the decision, why it matters, explicit choices, source path, Donna identity, and task receipt. Board → Needs You is the durable decision surface.
+5. **Donna** pushes the briefing to the Telegram Command Group as an alert containing the Board task IDs. Telegram says what happened and where to continue; it is not the work ledger.
+6. After an operator response, Donna routes the approved bounded work, tracks it to an evidence-bearing result, and creates a new Board review request for any staged enhancement. Agents may commit verified work to their isolated branch after approval; merging, publishing, spending, or writing canon requires the explicit authority named in that request.
 
 ### Automated Cron Orchestration
 This cadence is automated via sequential local cron jobs (the "Cloud-Local Asynchronous Handoff" pattern):
@@ -53,3 +55,5 @@ This cadence is automated via sequential local cron jobs (the "Cloud-Local Async
 3. The Operator (or Donna via 08:00 cron) reads the final board packet and triggers execution (e.g., Vertex MCP generations).
 
 **CRITICAL PITFALL - Telegram Bi-Directional Comms:** When configuring the `donna_operator_briefing` (or any Orchestrator) cron job to deliver the packet to the Operator's Telegram channel, you MUST set `attach_to_session: true` in the cron configuration. If this is omitted, the broadcast is "fire and forget," and any replies the Operator sends to the Board in that channel will be ignored into a void.
+
+**CRITICAL PITFALL - Telegram Is Not State:** A delivered Telegram packet is not evidence that a decision is tracked. The run is incomplete until every decision and actionable recommendation has an idempotent Kanban receipt visible through Board → Needs You. Document claims do not supersede the live request ledger.
