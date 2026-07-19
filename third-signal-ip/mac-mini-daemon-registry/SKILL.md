@@ -16,16 +16,6 @@ Check this document when setting up a new machine, after an OS update, or when a
 
 ## LaunchAgents (~\/Library/LaunchAgents/)
 
-### com.trycua.driver (CuaDriver)
-- **Purpose:** Background screen-aware UI control for agent visual `computer_use` and browser integration.
-- **Binary:** `/Applications/CuaDriver.app/Contents/MacOS/cua-driver serve`
-- **TCC Permissions Required:** macOS **Accessibility** and **Screen Recording** (Grants stick to `com.trycua.driver` identity).
-- **Control Commands:**
-  * Status: `cua-driver permissions status`
-  * Trigger Permission Prompt: `/Applications/CuaDriver.app/Contents/MacOS/cua-driver permissions grant` (correct LaunchServices method)
-  * Manual Daemon Start: `open -n -g -a CuaDriver --args serve`
-- **Installation:** Bootstrapped via `hermes computer-use install`
-
 ### com.landsat.ollama
 - **Purpose:** Ollama model server bound to `0.0.0.0:11434`
 - **Binary:** `/usr/local/bin/ollama serve`
@@ -48,19 +38,6 @@ Check this document when setting up a new machine, after an OS update, or when a
 - **KeepAlive:** true (auto-restarts)
 - **Logs:** `~/conductor/repos/orbital-system/logs/librarian-watcher.out.log`, `~/conductor/repos/orbital-system/logs/librarian-watcher.err.log`
 - **ThrottleInterval:** 30 seconds between restarts
-
-### com.thirdsignal.investor-watcher
-- **Purpose:** Listens to the `investor_telemetry` collection on `third-signal-v2` Firestore to watch for live investor activity and trigger local alerts.
-- **Binary:** `/Volumes/Mini_2T/lenoxparis data/Dev/Investor-hub/landsat-bridge/investor-telemetry-watcher.py`
-- **KeepAlive:** true
-- **Logs:** `/Volumes/Mini_2T/lenoxparis data/Dev/Investor-hub/landsat-bridge/watcher.log`
-
-### com.thirdsignal.youtube-publisher
-- **Purpose:** Automated video syndication pipeline. Watches Chrome Downloads directory, routes via UNIVERSAL ROUTING matrix to proper YouTube playlists, conditionally patches React code, and pushes to git.
-- **Binary:** `env -u PYTHONPATH -u VIRTUAL_ENV "/Volumes/Mini_2T/lenoxparis data/miniconda/bin/python3" -u "/Volumes/Mini_2T/lenoxparis data/Dev/Investor-hub/landsat-bridge/youtube-pipeline/auto-publisher.py"`
-- **Dependencies:** Requires local `client_secret.json` and one-time browser `token.json` authorization inside the directory. Ensure it is launched with `env -u PYTHONPATH -u VIRTUAL_ENV` to prevent python version collisions if launched from an agent shell.
-- **KeepAlive:** true
-- **Logs:** `/Volumes/Mini_2T/lenoxparis data/Dev/Investor-hub/landsat-bridge/youtube-pipeline/publisher.log`
 
 ### com.thirdsignal.donna-gateway
 - **Purpose:** Donna's always-on gateway — Jarvis-like orchestrator interface
@@ -115,18 +92,6 @@ Symlinks in `~/.hermes/profiles/` point there.
 | janitor | gemini-3-flash-preview | gemini | on-demand |
 | poe-hub | Claude-Sonnet-4.8 | custom (Poe) | on-demand |
 | donna | gpt-5.4 | auto (OpenAI) | **always-on** (LaunchAgent) |
-
-## Infrastructure Setup Guides
-For specific setup quirks (e.g., configuring Bitwarden Secrets Manager or the Hermes OAuth Proxy), read the infrastructure quirks reference:
-`skill_view(name="mac-mini-daemon-registry", file_path="references/hermes-infrastructure-quirks.md")`
-
-## ⚠️ CRITICAL PITFALL: Python Daemons on Mac Mini
-When writing background daemons (e.g. `nohup python3 script.py &`) on the Mac Mini, **never use the bare `python3` command.** The system will default to the OS-level python instead of the active miniconda environment where dependencies (like `google-auth-oauthlib`) are actually installed, causing silent `ModuleNotFoundError` crashes in the background.
-
-**Always use the absolute path to the miniconda executable:**
-```bash
-nohup "/Volumes/Mini_2T/lenoxparis data/miniconda/bin/python3" /path/to/daemon.py > watcher.log 2>&1 &
-```
 
 ## Verification Commands
 

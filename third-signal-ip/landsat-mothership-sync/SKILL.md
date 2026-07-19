@@ -17,34 +17,39 @@ Use this on the Mac Mini or from an agent controlling the Mini. The pattern is p
 
 ## Safe Sync Workflow
 
-1. Check local repo cleanliness:
+1. Fetch the remote refs without changing the worktree:
+   ```bash
+   git -C ~/conductor/repos/orbital-system fetch origin --prune
+   ```
+2. Check local repo cleanliness:
    ```bash
    git -C ~/conductor/repos/orbital-system status --short --branch
    ```
-2. If dirty, do not overwrite. Report changed files and ask for operator approval.
-3. Fetch and fast-forward only:
+3. If dirty, do not overwrite. Write a truthful `blocked_dirty_worktree` status packet containing the observed remote commit, ahead/behind counts, and changed files; then ask for operator approval.
+4. Fast-forward only:
    ```bash
-   git -C ~/conductor/repos/orbital-system fetch origin --prune
    git -C ~/conductor/repos/orbital-system pull --ff-only origin codex/thi-91-orbital-key-hardening
    ```
-4. Refresh ecosystem repos:
+5. Refresh ecosystem repos:
    ```bash
    ~/conductor/repos/orbital-system/scripts/sync_third_signal_repos.sh
    ```
-5. Sync local skills without deleting operator-authored skills:
+6. Sync local skills without deleting operator-authored skills:
    ```bash
    mkdir -p ~/.agents/skills
    rsync -a --exclude 'local-ollama-switch/' ~/conductor/repos/orbital-system/.agent/skills/ ~/.agents/skills/
    ```
-6. Load `third-signal-operator-divisions` after sync for ALFRED-Air/LANDSAT department goals, content flywheel, and handoff authority boundaries.
-7. If `~/.agents/skills/local-ollama-switch/SKILL.md` exists, read it before starting, stopping, or switching Ollama. Treat it as the canonical local activation control.
-8. Verify LANDSAT health:
+7. Load `third-signal-operator-divisions` after sync for ALFRED-Air/LANDSAT department goals, content flywheel, and handoff authority boundaries.
+8. If `~/.agents/skills/local-ollama-switch/SKILL.md` exists, read it before starting, stopping, or switching Ollama. Treat it as the canonical local activation control.
+9. Verify LANDSAT health:
    ```bash
    tailscale status | grep mac-mini || true
    curl -fsS http://127.0.0.1:11434/api/version || true
    curl -fsS http://127.0.0.1:11434/api/tags || true
    ```
-9. Report an artifact with: `node_id`, `git_commit`, `skills_synced`, `third_signal_operator_divisions_present`, `local_ollama_switch_present`, `active_brain_provider`, `local_fallback_status`, `health`, `errors`.
+10. Report an artifact with: `node_id`, `git_commit`, `remote_commit`, `remote_observed`, `worktree_updated`, `skills_synced`, `third_signal_operator_divisions_present`, `local_ollama_switch_present`, `active_brain_provider`, `local_fallback_status`, `sync_status`, `health`, `errors`. The latest packet is mirrored to `~/.landsat/status/mothership-sync-latest.json`.
+
+The background Librarian must not write Git-tracked Manifest Markdown. Firestore is automatic; a Markdown export requires a one-shot `--write-manifest-file` run and is refused in Librarian watch mode.
 
 ## Provider Posture
 

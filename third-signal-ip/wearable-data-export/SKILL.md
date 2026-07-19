@@ -40,16 +40,14 @@ Store under: `limitless/YYYY/MM/DD/{id}.md` and `limitless/YYYY/MM/DD/{id}.json`
 
 ## OMI Export
 
-### Preferred Method: Local Google Drive Sync
-Check the treble.design Google Drive for automated OMI backups natively via macOS CloudStorage:
-`ls ~/Library/CloudStorage/GoogleDrive-treble.design@gmail.com/My\ Drive/OMI/`
-This method is faster, avoids API rate limits, and bypasses `gws` CLI authentication errors. Ingest these backup text files directly using file reading tools or scripts.
+### Memories
+Use `get_memories` tool. Store under: `omi/memories/YYYY/MM/DD/{id}.md`
 
-### Fallback: OMI API Tools
-If the local Drive backups are inaccessible, use the API tools directly:
-- **Memories:** Use `get_memories` tool. Store under: `omi/memories/YYYY/MM/DD/{id}.md`
-- **Conversations:** Use `get_conversations` tool. Store under: `omi/conversations/YYYY/MM/DD/{id}.md`
-- **Action Items:** Use `get_action_items` tool. Store under: `omi/action-items/YYYY/MM/DD/{id}.md`
+### Conversations
+Use `get_conversations` tool. Store under: `omi/conversations/YYYY/MM/DD/{id}.md`
+
+### Action Items
+Use `get_action_items` tool. Store under: `omi/action-items/YYYY/MM/DD/{id}.md`
 
 ## Sync State
 
@@ -69,14 +67,6 @@ Maintain `manifests/last_sync.json`:
   }
 }
 ```
-
-## Fallback Strategies
-- **OMI Ingest:** If the preferred Google Drive backup ingest fails (e.g., due to `gws` tool authentication or environment-specific Python errors), fall back to querying the OMI Developer API (`get_conversations`) directly to ensure the daily sync is not interrupted.
-- **Limitless Ingest:** Use `getLifelogs` with temporal filters based on the last manifest sync time to avoid duplicate pulls.
-
-## Troubleshooting
-- **Cron Job Execution:** The `execute_code` tool is blocked during unattended cron jobs for security. To run Python logic during a cron schedule, use `write_file` to create a `.py` script locally, and run it via `terminal(command="python3 script.py")`.
-- **Python Versioning:** Many Workspace/Drive tools require Python 3.10+. If running in an environment with Python 3.9 (common in some legacy Linux/macOS installs), certain type-hinted scripts may fail. Use direct API calls via `curl` or alternative Python environments where possible.
 
 After each successful export, update the timestamp so the next run only pulls new data.
 

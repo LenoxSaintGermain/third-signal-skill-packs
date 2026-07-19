@@ -5,9 +5,7 @@ description: Use when working on Third Signal, Orbital OS, ALFRED-Air, LANDSAT, 
 
 # Third Signal Operator Divisions
 
-Use this skill when navigating the organizational boundaries, goals, and communication styles of the Third Signal Lab divisions.
-
-*See `references/agent-readable-exports.md` for the standard on how to format exports with embedded system directives for autonomous consumption.*
+Use this skill to align any local or cloud agent with the Third Signal operating model before it works on Orbital, ALFRED-Air, LANDSAT, Agent Wiki, Signal Spark, content, or publishing workflows.
 
 ## North Star
 
@@ -53,10 +51,6 @@ Environment posture:
 
 ## Divisions
 
-### Portfolio Architecture (The Venture Studio)
-**CRITICAL:** When discussing or presenting the Third Signal IP portfolio, you must maintain strict structural separation between back-office infra, front-office distribution, and physical IP. For example, "The Line" (back-office agent gateway) is distinct from "The Showcase" (presentation UI). "Orbital OS" (software) is distinct from "Orbital Climate Systems" (physical apparel).
-See `references/venture-studio-portfolio-architecture.md` for the exact 8-part taxonomy and positioning of the studio's assets.
-
 ### ALFRED-Air Department
 
 Mission: mobile/off-cloud operator companion on the MacBook Air.
@@ -79,12 +73,6 @@ Success metric: the operator can say an objective once and receive a traceable p
 ### LANDSAT Department
 
 Mission: Mac Mini sovereign operations node and long-running local/private lane.
-
-**Telegram Command Center (Group Chat Integration):** 
-LANDSAT is designed to operate seamlessly via a unified Telegram Group (acting as a multi-agent cockpit) rather than 1-on-1 DMs. To configure a new group for LANDSAT:
-1. **Disable Group Privacy:** Telegram blocks bots from reading group messages by default. Use `@BotFather` -> `/mybots` -> Bot Settings -> Group Privacy -> **Turn Off**.
-2. **Disable Mention Requirement:** Hermes ignores untagged messages in groups by default. Run `hermes config set telegram.require_mention false` locally on LANDSAT and restart the gateway.
-3. **Set Home:** Run `/sethome` in the group so background cron jobs route to the group chat instead of direct messages.
 
 LANDSAT should excel at:
 
@@ -125,7 +113,6 @@ Content flywheel:
 5. Route through review: accuracy, public-safety, brand voice, rights/privacy.
 6. Publish only after explicit approval.
 7. Feed results back into Agent Wiki/Armory/Manifest through Librarian proposals.
-8. **Investor Pitch Validation:** For high-value MVP assets, use the NotebookLM validation pattern (see `references/notebooklm_analyst_validation.md`) to embed third-party audio analyst reviews into the data room.
 
 Success metric: Third Signal can regularly publish grounded demos, essays, video scripts, shorts, and YouTube concepts from the operating memory without leaking private/internal material.
 
@@ -189,10 +176,6 @@ Research evidence packet minimum:
 }
 ```
 
-## Platform & Gateway Quirks
-
-- **Telegram Group Privacy:** Telegram bots cannot read group messages by default. When setting up a multi-agent or Sovereign Command Center in a private Telegram Group, the Operator MUST disable "Group Privacy" via @BotFather. Otherwise, the local gateway will only see explicit `@mentions` and will fail to register ambient commands or general chat.
-
 ## Safety Rules
 
 - Do not deploy production, rotate/delete secrets, force-push, rewrite shared history, or publish public content without explicit approval.
@@ -243,8 +226,3 @@ When an agent using this skill receives a Third Signal task:
 3. Pick the safest lane: Codex, ALFRED-Air, LANDSAT, Librarian, #admin, or operator review.
 4. Produce a packet, proposal, patch, or plan with source references.
 5. Stop at authority boundaries instead of silently escalating.
-
-## Additional Third Signal Operations
-- **Archivist:** Extracting, normalizing, and backing up wearable AI data (Limitless, OMI) using extraction loops and cron jobs.
-- **Vision OS UI:** Guidelines and code patterns for achieving Apple Vision OS-level fidelity in Third Signal web applications (see `references/third-signal-spatial-ui.md`).
-- **Virtual Data Room:** Pattern for building an interactive Virtual Data Room (Agentic Pitch Deck) for investors.

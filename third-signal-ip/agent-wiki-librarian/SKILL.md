@@ -94,15 +94,6 @@ Use this shape for local Active Cognitive Compendium proposals:
 }
 ```
 
-## Pitfalls & Troubleshooting
-
-**1. Librarian Pipeline Stalled / Missing Concepts (`invalid_rapt` Error)**
-If the `compiled_wiki/pages/concepts/` directory (or Obsidian graph) is not updating and the `run_librarian.sh` cron job fails, check the logs for:
-`"error":"invalid_grant", "error_description":"reauth related error (invalid_rapt)"`
-
-This means the Application Default Credentials (ADC) for Google Cloud have expired. The Librarian requires Firestore Admin SDK access, which fails without a valid token.
-**Fix:** Instruct the operator to run `gcloud auth application-default login` in their terminal to re-authenticate, then manually trigger the Librarian to unblock the pipeline.
-
 Before writing or handing off a proposal, run proposed text through `lib/librarian/parser.py` redaction logic or equivalent local redaction.
 
 ## Verification Commands
