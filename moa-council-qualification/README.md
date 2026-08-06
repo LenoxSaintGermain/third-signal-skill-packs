@@ -1,7 +1,7 @@
 # MoA Council Qualification
 
 **Status**: 🟢 PRODUCTION
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Category**: Multi-Model Orchestration & Cost Engineering
 
 ---
@@ -19,19 +19,20 @@ advisors" that is one model talking to itself, a synthesizer weaker than the mod
 referees, a roster naming models the API cannot actually call, and a bill nobody predicted
 because unit price was confused with cost per finished task.
 
-**The Solution**: A qualification protocol. Six falsifiable laws, each of which contradicts
+**The Solution**: A qualification protocol. Seven falsifiable laws, each of which contradicts
 an intuition most teams hold, and a runbook that proves a roster before it ships. Every law
-here was derived from a failure caught in production qualification — not from theory.
+here was derived from a real defect — most caught during qualification, and two (2 and 7)
+caught only by the first live turn, after the roster had already passed review.
 
 **Why this step matters**: a bad council does not fail loudly. It returns a plausible
 answer, at a higher cost, with fewer real perspectives than you think you bought. The
 failure mode is invisible by construction: you cannot tell from the output that one advisor
-was cut off at token 600, or that three of your four "independent" advisors were the same
-model. Qualification is the only place these defects are detectable.
+was cut off at its token cap, or that three of your four "independent" advisors were the
+same model. Qualification is the only place these defects are detectable.
 
 ---
 
-## The Six Laws
+## The Seven Laws
 
 | # | Law | The intuition it breaks |
 |---|-----|-------------------------|
@@ -41,6 +42,12 @@ model. Qualification is the only place these defects are detectable.
 | **4** | **Fan-Out Law** — know which primitive you have | Most delegation APIs resolve **one** credential bundle and hand the same model to every child. That is homogeneous fan-out. Building a "council" on it yields one model in N costumes. |
 | **5** | **Unit-Price Law** — unit price ≠ cost per successful task | Two models can bill identically per token and differ 2× per finished task, because effort settings and verbosity drive spend more than rate does. |
 | **6** | **Sensitivity Law** — classify data before ranking capability | Governance binds before benchmarks. The best model for a task is irrelevant if policy forbids that class of data reaching it. Sensitivity is a gate, not a tiebreaker. |
+| **7** | **Context Law** — in a council, **input** dominates cost | Every advisor receives the full conversation. Measured in production: **130 input tokens per output token**. Output caps are a quality control, not a cost lever — the levers are advisor count, input rate, and cache hits. |
+
+> **Laws 2 and 7 interact, and the interaction is the trap.** Because output is a
+> rounding error in council spend, a *generous* output cap is nearly free — yet caps are
+> routinely set tight "to control cost", buying nothing and truncating advisors. Calibrate
+> caps for quality; control cost on the input side.
 
 ---
 
@@ -76,7 +83,7 @@ different perspective; two general siblings are not.
 
 - **Leaderboard-topping roster.** The top model on a board may be unreachable via your API, restricted by your governance, or priced for a different budget. Availability and policy are filters applied *before* ranking.
 - **The weak synthesizer.** Putting a small fast model in the aggregator seat to save money inverts the whole pattern — you pay for frontier advice and then have it summarized by the weakest participant.
-- **Guessed caps.** Any token cap not derived from measurement is a truncation bug waiting for a long prompt.
+- **Guessed caps — and caps measured on toy prompts.** Any cap not derived from measurement *under representative context* is a truncation bug waiting for a real conversation.
 - **Homogeneous "councils".** See Law 4. Verify the primitive.
 - **Static rosters.** A qualified roster is qualified *as of a date*. Model catalogs move weekly. Re-run the protocol, and never hardcode a model id you have not probed.
 
@@ -92,5 +99,6 @@ different perspective; two general siblings are not.
 ## Provenance
 
 Derived from production qualification of a live operator-agent council on the Hermes stack.
-Every law corresponds to a defect the protocol caught before it shipped. The dated appendix
-in the field notes will age — the laws will not.
+Every law corresponds to a defect this protocol met in production — including two it failed
+to prevent on the first pass, documented in the field-notes postmortem rather than quietly
+patched. The dated appendix will age; the laws will not.

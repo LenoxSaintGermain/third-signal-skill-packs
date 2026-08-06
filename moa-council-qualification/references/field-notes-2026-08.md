@@ -120,6 +120,39 @@ theatre.**
 
 ---
 
+## Postmortem — what the first live turn broke
+
+The roster above was qualified, validated, and **still shipped with two defects**. Both were
+found only by running a real turn and reading its trace. They are recorded here because
+they are the strongest argument in this pack: static qualification is necessary and not
+sufficient.
+
+**1. The cap was calibrated on a toy prompt.** Advisor caps were set from bench runs on a
+bare ~40-token prompt, where the worst advisor wrote 459 tokens. A 1500 cap looked like 3×
+headroom. On the first real turn — ~92k–138k input tokens of live conversation per advisor
+— one advisor ran straight through 1500 and truncated mid-sentence, in the middle of the
+very section the prompt had asked for. The aggregator noticed and flagged it in its own
+synthesis, which is the only reason it was visible at all. **Law 2 now says: calibrate
+under representative context.**
+
+**2. The cost estimate was ~25× low.** Predicted $0.03–0.05 per turn; actual **$1.18**. The
+estimate assumed a few thousand tokens of context per advisor. The trace showed **327,429
+input tokens against 2,518 output** — a 130:1 ratio. Every advisor receives the entire
+conversation, and this session had been accumulating for weeks. That error produced a
+runway forecast wrong by an order of magnitude: ~25 escalations per monthly allowance, not
+~630. **Law 7 exists because of this.**
+
+**3. The verifier reported a false PASS.** The purpose-built check printed
+`PASS no advisor hit the None-token cap` — it could not read the cap (a missing YAML
+dependency in the interpreter it ran under), so the comparison was skipped, and skipping
+rendered as passing. The truncation in defect 1 was sitting in the same output, unreported.
+
+That third one is the most damning, because the tool existed *specifically* to catch
+defect 1. **A check that cannot run must fail loudly, never silently pass.** The verifier
+now prints `UNCHECKED` with the reason and returns non-zero when it cannot read what it is
+asserting against. Every assertion tool in this protocol should be audited for the same
+failure mode: ask what it prints when its own inputs are missing.
+
 ## Final structure
 
 | seat | selection basis |

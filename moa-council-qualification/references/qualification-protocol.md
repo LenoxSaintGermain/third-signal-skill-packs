@@ -79,6 +79,14 @@ N× for one perspective.
 For every candidate, run one representative prompt at a generous cap and record the split
 between reasoning and visible tokens.
 
+> ⚠️ **Calibrate under representative context, not a bare prompt.** This is the single
+> easiest way to get Step 3 wrong, and it has burned this protocol's own authors. Advisors
+> given ~40 input tokens of prompt wrote 190–460 tokens; the same advisors, on a real turn
+> carrying ~92k–138k tokens of live conversation, wrote past a 1500 cap and truncated
+> mid-sentence. **Models write longer when given more to respond to.** A cap calibrated on
+> a toy prompt is not a cap, it is a delayed truncation bug. Measure on a prompt carrying
+> realistic context, or measure from a real turn's trace and correct afterwards.
+
 ```bash
 # inspect usage, not just the text
 ... | python3 -c "
@@ -131,6 +139,19 @@ runway against current balance.
 ```
 turn_cost = Σ_advisors (ctx_tokens × in_rate + measured_out × out_rate) + aggregator_cost
 ```
+
+**`ctx_tokens` must come from a real trace, never an estimate.** Every advisor receives the
+full conversation, so context — not output — sets the bill. A production measurement:
+327,429 input tokens against 2,518 output tokens across three advisors, a **130:1 ratio**.
+An estimate that assumed a few thousand tokens of context under-predicted the true cost by
+more than an order of magnitude.
+
+Consequences worth internalising:
+
+- **Output caps are not a cost control.** At 130:1, doubling every advisor's output cap moves the bill by under 1%.
+- **The real levers are advisor count, input rate, and cache hits.** Dropping one advisor from three cuts ~33%. The seat with the highest *input* rate dominates — in that measurement one advisor was 60% of spend on input alone.
+- **Long-lived sessions get expensive quietly.** Council cost scales with accumulated conversation length, so the same question costs more in week six than week one.
+- **A first turn is a cold cache.** Judge steady-state cost from a second turn inside the cache window, not the first.
 
 Report which single seat dominates spend. There is usually one, and it is usually the seat
 someone added for prestige.
