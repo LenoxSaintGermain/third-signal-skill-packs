@@ -1,7 +1,7 @@
 # MoA Council Qualification
 
 **Status**: 🟢 PRODUCTION
-**Version**: 1.2.0
+**Version**: 1.3.0
 **Category**: Multi-Model Orchestration & Cost Engineering
 
 ---
@@ -78,6 +78,26 @@ A council of four models from one family buys correlated errors at 4× the price
 across the advisor set is a first-class selection criterion, not a nice-to-have. The
 exception is genuine **specialists**: a coding-tuned sibling of a general model is a
 different perspective; two general siblings are not.
+
+### The same seats appear in agent swarms
+
+A parallel-worker swarm — fan out to N workers, verify, synthesize — is a council with a
+different execution model, and the seat rules transfer intact:
+
+| swarm role | council seat | rank on |
+|---|---|---|
+| worker | advisor | task domain axis; lineage diversity across the set |
+| verifier | *adversarial* | reasoning + instruction-following, and a **different lineage from the workers it checks** — a model does not catch its own family's blind spots |
+| synthesizer | aggregator | instruction-following + language; it writes the visible output and drives the tool loop |
+
+The verifier seat is the one most often got wrong: teams staff it with their best model
+regardless of family, and it then shares the blind spots of the work it is auditing.
+Lineage difference matters more there than raw score.
+
+Two practical notes:
+
+- **Most swarm frameworks give workers no model field at all** — they inherit one default, so the "swarm" is N copies of one model. Check before assuming; this is Law 4 wearing a different hat.
+- **Swarms invert Law 7 in your favour.** Each worker runs in an isolated fresh context, so the session-age cost blow-up that makes a long-lived council expensive does not apply.
 
 ---
 
