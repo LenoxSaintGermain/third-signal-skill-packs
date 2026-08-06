@@ -167,6 +167,42 @@ bill is visible.
 
 ---
 
+## Step 5b — Reduce context semantically, never syntactically
+
+Once you know the bill, the instinct is to compress what you send. Most schemes make it
+worse. Measured against one production tokenizer, same information:
+
+| encoding | chars | tokens | chars/token | vs plain |
+|---|---|---|---|---|
+| plain English | 582 | 117 | 4.97 | 1.00× |
+| terse / telegraphic | 229 | 72 | 3.18 | **0.62×** |
+| minified JSON | 211 | 68 | 3.10 | **0.58×** |
+| base64 | 776 | 514 | 1.51 | **4.39×** |
+| gzip + base64 | 452 | 316 | 1.43 | **2.70×** |
+
+The decisive row is gzip+base64: **22% fewer characters, 170% more tokens.** Character count
+and token count are decoupled. BPE vocabularies are fit to natural text, so English packs
+~5 chars/token while encoded blobs shred to ~1.4. Every scheme still round-trips through the
+vocabulary — that is the floor you cannot encode past.
+
+What actually reduces spend, in order of effect:
+
+1. **Send less.** Advisors judging a design do not need execution transcripts. Measured 97% of advisor input on an aged session was tool-call history sent to models explicitly forbidden from calling tools.
+2. **Start fresh.** See Law 7 — the same question, aged vs fresh session, was 82× apart.
+3. **Impose an output contract.** Advisors write for an aggregator, not a reader. Instructing "no preamble, no restated question, no headers, telegraphic fragments" cut output tokens **38%** with the conclusion and reasoning intact.
+4. **Terse or tabular formats** for structured payloads (0.58–0.62×).
+
+**The genuinely non-token path is closed to multi-vendor councils.** Soft prompts, embedding
+inputs, and KV-cache reuse bypass tokenisation entirely — real compression. But chat APIs do
+not accept embeddings, and each vendor's embedding space differs, so the one architecture
+that cannot use them is the cross-lineage council. Model diversity and embedding-level
+compression are mutually exclusive.
+
+**Catches**: wasted engineering on encoding schemes that increase cost, and the more common
+failure of never asking what the recipient actually needs.
+
+---
+
 ## Step 6 — Encode the decision where it is enforced
 
 Write the reasoning into the config beside the value it explains — measured numbers, the
