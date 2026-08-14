@@ -17,8 +17,8 @@ This repo contains the actual `SKILL.md` files, references, and system prompts i
 Key IP verticals included here:
 
 - **🤖 Autonomous Executive Board:** Behavioral personas for Atlas (CEO) and Nova (CMO) that autonomously define our strategic directives and generate MRR-driving marketing campaigns.
-- **🖥️ LANDSAT & Local Orchestration:** Scripts, daemons, and storage policies governing our Mac Mini sovereign bridge. Zero-cost local intelligence powering cloud deployments.
-- **⚙️ ADK Agent Patterns & Handoffs:** Advanced patterns for "Cloud-to-Local Asynchronous Handoff," where lightweight webhooks trigger heavy local GPU/CPU compute, sidestepping API costs.
+- **🖥️ LANDSAT & Local Orchestration:** Scripts, daemons, and storage policies governing our Mac Mini sovereign bridge — local execution for file, disk, and data work, with inference routed deliberately per job across subscription, local, and metered lanes.
+- **⚙️ ADK Agent Patterns & Handoffs:** Advanced patterns for "Cloud-to-Local Asynchronous Handoff," where lightweight webhooks trigger heavy local GPU/CPU compute, keeping orchestration off metered inference.
 - **📂 Wearable & Open Notebook UI:** Workflows for auto-ingesting data from Limitless/OMI wearables and routing it directly into our vector-backed Command Cockpit.
 - **💸 Inference Spend Forensics:** The seven laws for attributing a runaway model bill to the system that actually caused it — including why "local" agent runtimes quietly bill cloud APIs, why unpriced models make spend structurally invisible, and why scheduled jobs outspend humans. Derived from a measured $1,234/30-day investigation.
 
