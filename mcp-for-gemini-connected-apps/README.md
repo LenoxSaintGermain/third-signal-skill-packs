@@ -62,6 +62,41 @@ one opaque client-side string into the exact sequence of probes the client actua
 
 ---
 
+## The diagnostic sequence
+
+Run in order. Each step eliminates a whole class, and the first is the one people skip.
+
+| # | step | what it settles |
+|---|------|-----------------|
+| **1** | **Read the server's own request log** | Whether the client reached you at all. No entries means DNS, tunnel, a dead process, or vendor-side blocking — and nothing server-side will help. |
+| **2** | `curl -X OPTIONS` | CORS preflight. A 501 here explains "could not be reached" on its own. |
+| **3** | `curl` GET the MCP endpoint | Anything but 405 misleads a reachability probe. |
+| **4** | Issue two requests on one connection | If the second is mangled, that is a keep-alive body-drain bug, not a protocol bug. |
+| **5** | Fetch both `.well-known` documents and diff them | If they are identical, one is wrong by construction. |
+| **6** | Walk the OAuth flow by hand — `/authorize` → code → `/token` → authenticated call | Proves which grant the client actually requires. |
+
+**Read the log before touching code.** In the run this pack came from, a full debugging round
+went to a server that had never started: the launch shell lacked the env var the server
+refuses to boot without, and the client reported the same "could not be reached" it reports
+for a protocol mismatch.
+
+---
+
+## Environment parity: the same law, one layer down
+
+Once it works, it has to keep working unattended — and the same mistake repeats there.
+
+A service that runs fine in your shell can fail under `launchd`, `systemd`, or cron, which
+run with a minimal `PATH`. Observed here: `/usr/bin/env python3` resolved to
+`/opt/homebrew/bin/python3` (3.14) interactively and to `/usr/bin/python3` (macOS system
+Python) under `launchd` — too old for this file's `dict | None` annotations. The service
+crash-looped on a `TypeError` that never appeared in manual testing.
+
+**Pin the interpreter and check its version at boot.** Law 1 again: the environment that runs
+your code is not the environment you tested in.
+
+---
+
 ## The checklist
 
 | # | do this | because |
@@ -110,6 +145,11 @@ That is the actual deliverable, and it deserves to be named:
 - **Leaving the tunnel up while auth is broken.** A machine-controlling endpoint on the open internet with a half-finished auth path is the worst moment to walk away from the terminal.
 
 ---
+
+- **Two fixes were correct and changed nothing observable.** The 404 → 405 change and the
+  keep-alive drain were both real bugs, and the client's error string was byte-identical
+  after each. It is tempting to revert a fix that "didn't work" — both turned out to be
+  load-bearing once CORS landed. An unchanged symptom is not a failed fix.
 
 ## Provenance
 
