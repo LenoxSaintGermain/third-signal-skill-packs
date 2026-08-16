@@ -20,6 +20,7 @@ Key IP verticals included here:
 - **🖥️ LANDSAT & Local Orchestration:** Scripts, daemons, and storage policies governing our Mac Mini sovereign bridge — local execution for file, disk, and data work, with inference routed deliberately per job across subscription, local, and metered lanes.
 - **⚙️ ADK Agent Patterns & Handoffs:** Advanced patterns for "Cloud-to-Local Asynchronous Handoff," where lightweight webhooks trigger heavy local GPU/CPU compute, keeping orchestration off metered inference.
 - **📂 Wearable & Open Notebook UI:** Workflows for auto-ingesting data from Limitless/OMI wearables and routing it directly into our vector-backed Command Cockpit.
+- **🔌 MCP for Gemini Connected Apps:** The five bugs that block a custom MCP server from connecting to Gemini's connected-app flow — four of which are invisible to `curl` because the connector is a browser client. CORS, keep-alive body desync, Authorization Code + PKCE, and correctly-shaped RFC 9728/8414 discovery documents.
 - **💸 Inference Spend Forensics:** The seven laws for attributing a runaway model bill to the system that actually caused it — including why "local" agent runtimes quietly bill cloud APIs, why unpriced models make spend structurally invisible, and why scheduled jobs outspend humans. Derived from a measured $1,234/30-day investigation.
 
 ## 🤝 For Partners and Clients
