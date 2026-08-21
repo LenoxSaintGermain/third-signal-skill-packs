@@ -1,13 +1,13 @@
 ---
 name: signal-stage-library
-description: Ingest approved or finalized visual-story assets—especially WIND spreads and Signal Comics story packs—into a validated Signal Stage library package. Use when Codex needs to audit asset approval and provenance, convert a final art package into a Signal Stage ingestion spec, design beat/shot/anchor/cue metadata, prepare immutable runtime derivatives, validate a story manifest, or hand off assets to the Signal Stage reader without regenerating approved art.
+description: Recover conversation-born creative assets into a provenance-safe source package, then ingest approved or finalized visual-story assets—especially WIND spreads and Signal Comics story packs—into a validated Signal Stage library package. Use when Codex needs to inventory thread images and missing originals, assign stable Asset DNA and lineage, separate canon from approval and binary availability, audit provenance, convert final art into an ingestion spec, design beat/shot/anchor/cue metadata, prepare immutable runtime derivatives, or hand assets to Signal Stage without regenerating approved art.
 ---
 
 # Signal Stage Library
 
-Treat ingestion and production as separate gates:
+Treat recovery, ingestion, and production as separate gates:
 
-`approved source package → ingestion spec → directed runtime spec → library pack`
+`conversation evidence → recoverable source package → approved source package → ingestion spec → directed runtime spec → library pack`
 
 Never turn an asset into a runtime scene merely because a file exists. Approval, identity, integrity, and direction are separate facts.
 
@@ -18,6 +18,21 @@ Preserve approved pixels. Generate only derivatives, crops, metadata, and runtim
 If the source needs visual repair, stop and return it to its originating production workflow.
 
 ## Workflow
+
+### 0. Recover conversation-born source truth
+
+When the source is a ChatGPT/Codex thread, creative session, or asset-extraction request, read [references/conversation-source-packages.md](references/conversation-source-packages.md) before inspecting files.
+
+Create a pre-ingestion source package that records:
+
+- conversation, turn, prompt, tool, filename, runtime-path, and file-ID evidence;
+- stable Asset DNA IDs and observed lineage;
+- binary availability, approval state, and canon state as three independent axes;
+- preview-only, known-runtime-reference, needs-export, and missing originals without substituting a screenshot;
+- rejected and superseded attempts as evidence-only nodes;
+- a recovery queue and explicit blockers.
+
+Do not call a conversation package production-ready. If original bytes are unavailable, materialize the manifest and recovery queue, not a counterfeit replacement. At generation time, capture the original binary and tool metadata immediately when the user has authorized a destination; later chat extraction may expose only a preview.
 
 ### 1. Establish the source boundary
 
@@ -30,6 +45,8 @@ Require:
 - source path, dimensions, byte size, and SHA-256;
 - text policy: `dynamic`, `hybrid`, or `baked-editorial`;
 - a clear canonical/private/release boundary.
+
+Availability is not approval. Approval is not canon. Canon is not release eligibility.
 
 Read [references/ingestion-contract.md](references/ingestion-contract.md) before authoring or editing an ingestion spec. For WIND, also read [references/wind-profile.md](references/wind-profile.md).
 
@@ -122,6 +139,8 @@ Block production when any of these is true:
 - a cue references a missing anchor;
 - mobile behavior depends on generative outpainting;
 - rejected evidence is marked release-eligible;
+- a rendered chat preview or screenshot is substituted for an unavailable original;
+- prompt, model, seed, parentage, or tool metadata is reconstructed and presented as exact;
 - the source master would be overwritten;
 - runtime copy contradicts approved wording or silently rewrites canon.
 
@@ -133,6 +152,8 @@ Block production when any of these is true:
 - Treat missing hands, duplicated props, pseudo-text, altered symbols, and identity drift as source-production failures—not runtime polish tasks.
 - Keep phone proofs and rejected candidates as evidence only.
 - Hash every accepted source and derivative.
+- Assign a stable Asset DNA ID before creating derivatives; retain parent and relationship edges.
+- Capture generated binaries at creation time whenever possible; a historical runtime path or file ID is a recovery handle, not proof that bytes remain accessible.
 - Preserve the release boundary. A valid pack is not automatically published.
 
 ## Handoff result
@@ -144,4 +165,5 @@ Report:
 - beat/mode count;
 - package path and manifest paths;
 - validation result;
+- recovery state, missing originals, and strongest known recovery handles;
 - actions intentionally not taken, such as deployment or canon assignment.

@@ -5,15 +5,47 @@
     "version": "1.0.0",
     "canonical": null,
     "production_status": "pending-approval",
-    "assets": [
+    "source_conversations": [
       {
-        "role": "wind-spread",
-        "path": "replace-with-relative-or-absolute-image-path.png",
-        "contains_lettering": null,
-        "status": "available-local"
+        "conversation_id": "replace-with-source-conversation-id",
+        "title": "Replace with source conversation title",
+        "status": "inventoried"
       }
     ],
+    "assets": [
+      {
+        "id": "replace-with-stable-asset-id",
+        "asset_dna_id": "REPLACE_ASSET_0001",
+        "role": "wind-spread",
+        "path": "replace-with-relative-or-absolute-image-path.png",
+        "original_filename": "replace-with-original-filename.png",
+        "binary_state": "needs-export",
+        "approval_state": "pending",
+        "canon_state": "proposed",
+        "contains_lettering": null,
+        "status": "needs-export",
+        "origin": {
+          "conversation_id": "replace-with-source-conversation-id",
+          "turn_id": null,
+          "tool": null,
+          "file_id": null,
+          "runtime_path": null
+        },
+        "lineage": {
+          "parents": [],
+          "relationships": []
+        }
+      }
+    ],
+    "decisions": [],
+    "recovery_queue": [],
     "quality_bars": [
+      {
+        "id": "original-binary",
+        "required": true,
+        "status": "pending",
+        "evidence": "Original bytes are locally verified or genuinely downloadable"
+      },
       {
         "id": "approval-evidence",
         "required": true,

@@ -31,7 +31,7 @@ MOTION_CLASSES = {"ambient", "narrative", "editorial", "silence"}
 TEXT_POLICIES = {"dynamic", "hybrid", "baked-editorial"}
 APPROVAL_STATES = {"approved", "finalized", "locked"}
 PASS_STATES = {"approved", "passed", "locked", "available-local", "finalized"}
-REJECT_STATES = {"rejected", "superseded", "failed", "inaccessible", "needs-export"}
+REJECT_STATES = {"rejected", "superseded", "failed", "inaccessible"}
 EVIDENCE_ROLES = {
     "rejected-candidate",
     "phone-qa-unlettered",
@@ -279,18 +279,20 @@ def inspect_command(args: argparse.Namespace) -> None:
             integrity_blockers.append(f"asset {index} is not an object")
             continue
         role = str(raw.get("role") or raw.get("kind") or f"asset-{index}")
-        asset_id = unique_asset_id(role, used_ids)
+        asset_id = unique_asset_id(str(raw.get("id") or role), used_ids)
         raw_path = str(raw.get("path") or "")
         resolved = resolve_source_path(raw_path, asset_root) if raw_path else None
         status = str(raw.get("status") or "unknown").lower()
         rejected = status in REJECT_STATES or role in EVIDENCE_ROLES or "rejected" in raw_path.lower()
         visual = bool(resolved and is_visual(role, resolved))
         exists = bool(resolved and resolved.is_file())
+        binary_state = str(raw.get("binary_state") or ("verified-local" if exists else "needs-export"))
         release_eligible = visual and exists and status in PASS_STATES and not rejected
         contains_lettering = infer_contains_lettering(raw, role)
 
         record: dict[str, Any] = {
             "id": asset_id,
+            "asset_dna_id": str(raw.get("asset_dna_id") or f"{package_id.upper().replace('-', '_')}::{asset_id.upper().replace('-', '_')}"),
             "role": role,
             "source_path": str(resolved) if resolved else "",
             "filename": resolved.name if resolved else Path(raw_path).name,
@@ -300,6 +302,9 @@ def inspect_command(args: argparse.Namespace) -> None:
             "bytes": None,
             "sha256": None,
             "status": status,
+            "binary_state": binary_state,
+            "approval_state": str(raw.get("approval_state") or "pending"),
+            "canon_state": str(raw.get("canon_state") or "not-applicable"),
             "contains_lettering": contains_lettering,
             "release_eligible": release_eligible,
             "immutable": release_eligible,
@@ -308,6 +313,10 @@ def inspect_command(args: argparse.Namespace) -> None:
             record["reason"] = str(raw["reason"])
         if raw.get("source_role"):
             record["source_role"] = str(raw["source_role"])
+        if isinstance(raw.get("origin"), dict):
+            record["origin"] = copy.deepcopy(raw["origin"])
+        if isinstance(raw.get("lineage"), dict):
+            record["lineage"] = copy.deepcopy(raw["lineage"])
 
         if exists and resolved:
             actual_bytes = resolved.stat().st_size
@@ -315,6 +324,7 @@ def inspect_command(args: argparse.Namespace) -> None:
             dimensions = image_dimensions(resolved) if visual else None
             record["bytes"] = actual_bytes
             record["sha256"] = actual_sha
+            record["binary_state"] = "verified-local"
             if dimensions:
                 record["width"], record["height"] = dimensions
 
@@ -764,7 +774,10 @@ def package_command(args: argparse.Namespace) -> None:
             provenance_assets.append(
                 {
                     "asset_id": asset_id,
+                    "asset_dna_id": asset.get("asset_dna_id"),
                     "role": asset["role"],
+                    "origin": asset.get("origin"),
+                    "lineage": asset.get("lineage"),
                     "original_path": asset["source_path"],
                     "original_sha256": asset["sha256"],
                     "source_copy": {**source_info, "path": f"source/{output_name}"},

@@ -14,7 +14,7 @@
 
 The ingestion spec is the stable handoff between an IP production workflow and Signal Stage. It separates:
 
-1. **Source truth** — what was approved, where it came from, and which file bytes are authoritative.
+1. **Source truth** — what was observed, where it came from, which file bytes are authoritative, and which originals still need recovery.
 2. **Editorial policy** — canon, privacy, text ownership, and allowed derivative operations.
 3. **Direction** — beats, crops, anchors, cues, motion, and reduced-motion behavior.
 4. **Runtime output** — a Signal Stage story manifest and copied browser assets.
@@ -56,6 +56,8 @@ blockers
 
 `package` identifies the source story. `approval` records the actual approval state and evidence. `policy` controls mutation and text ownership. `assets` is the complete provenance registry. `runtime` is the directed story. `gates` records machine-checkable results.
 
+For conversation-born material, preserve `source_conversations`, Asset DNA, lineage, binary availability, asset approval, and canon state from the source package. See [conversation-source-packages.md](conversation-source-packages.md).
+
 ## 3. Asset records
 
 Every locally available file record uses:
@@ -63,6 +65,7 @@ Every locally available file record uses:
 ```json
 {
   "id": "text-free-master",
+  "asset_dna_id": "WIND_ASSET_0001",
   "role": "text-free-master",
   "source_path": "/absolute/source/path.png",
   "filename": "source-path.png",
@@ -72,6 +75,9 @@ Every locally available file record uses:
   "bytes": 1899313,
   "sha256": "...",
   "status": "passed",
+  "binary_state": "verified-local",
+  "approval_state": "approved",
+  "canon_state": "locked",
   "contains_lettering": false,
   "release_eligible": true,
   "immutable": true
@@ -81,6 +87,8 @@ Every locally available file record uses:
 Rules:
 
 - Keep absolute source paths in the private ingestion spec; the packaged runtime manifest contains only browser paths.
+- Never substitute a preview, screenshot, historical runtime path, or internal file ID for original bytes.
+- Preserve observed origin and lineage fields. Unknown parentage remains unknown.
 - Record rejected and superseded files for provenance, but set `release_eligible` to `false`.
 - Never select `phone-qa-*`, `rejected-candidate`, prompt records, or QA reports as runtime art.
 - Prefer a clean reader derivative or text-free master for `dynamic` text.
