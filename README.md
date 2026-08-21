@@ -20,6 +20,7 @@ Key IP verticals included here:
 - **🖥️ LANDSAT & Local Orchestration:** Scripts, daemons, and storage policies governing our Mac Mini sovereign bridge. Zero-cost local intelligence powering cloud deployments.
 - **⚙️ ADK Agent Patterns & Handoffs:** Advanced patterns for "Cloud-to-Local Asynchronous Handoff," where lightweight webhooks trigger heavy local GPU/CPU compute, sidestepping API costs.
 - **📂 Wearable & Open Notebook UI:** Workflows for auto-ingesting data from Limitless/OMI wearables and routing it directly into our vector-backed Command Cockpit.
+- **🎞️ Signal Stage Library:** A provenance-first pipeline that turns approved visual-story assets into directed cinematic runtime packs without altering approved art.
 
 ## 🤝 For Partners and Clients
 

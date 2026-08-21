@@ -1,0 +1,4 @@
+interface:
+  display_name: "Signal Stage Library"
+  short_description: "Ingest approved art into cinematic story packs"
+  default_prompt: "Use $signal-stage-library to ingest these approved WIND assets and prepare a validated Signal Stage library pack."

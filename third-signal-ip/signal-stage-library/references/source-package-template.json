@@ -1,0 +1,49 @@
+{
+  "story_pack": {
+    "id": "replace-with-stable-story-id",
+    "title": "Replace with approved title",
+    "version": "1.0.0",
+    "canonical": null,
+    "production_status": "pending-approval",
+    "assets": [
+      {
+        "role": "wind-spread",
+        "path": "replace-with-relative-or-absolute-image-path.png",
+        "contains_lettering": null,
+        "status": "available-local"
+      }
+    ],
+    "quality_bars": [
+      {
+        "id": "approval-evidence",
+        "required": true,
+        "status": "pending",
+        "evidence": "Replace with the named approval artifact or user instruction"
+      },
+      {
+        "id": "panel-geometry",
+        "required": true,
+        "status": "pending",
+        "evidence": "Replace with the approved composition and reading order"
+      },
+      {
+        "id": "asset-integrity",
+        "required": true,
+        "status": "pending",
+        "evidence": "Dimensions and SHA-256 are filled by the inspector"
+      }
+    ],
+    "delivery_targets": [
+      {
+        "name": "signal-stage-ingestion",
+        "required": true,
+        "status": "pending"
+      },
+      {
+        "name": "publication",
+        "required": false,
+        "status": "not-authorized"
+      }
+    ]
+  }
+}
