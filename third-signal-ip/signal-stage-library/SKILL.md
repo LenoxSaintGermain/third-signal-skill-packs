@@ -63,6 +63,8 @@ python3 scripts/signal_stage_library.py inspect \
 
 Use `--asset-root` only when manifest paths are relative to a different verified root. Use `--approval approved|finalized|locked` only when the user or a named approval artifact supplies that state. Record the evidence with `--approval-evidence`.
 
+For post-package approvals, keep the source package immutable and pass each explicitly approved inventory or Asset DNA ID with `--approved-asset-id`. Package approval alone never promotes every observed asset; missing screenshots, QA proofs, rejected files, and unselected proposals remain ineligible.
+
 The command may emit a blocked spec. That is useful: preserve its blockers rather than weakening the gate.
 
 ### 3. Choose the text policy

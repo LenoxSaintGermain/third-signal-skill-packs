@@ -83,6 +83,93 @@ class SignalStageLibraryTests(unittest.TestCase):
         self.assertIn("origin", asset)
         self.assertIn("lineage", asset)
 
+    def test_post_package_approval_is_scoped_to_selected_asset_dna(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            image = root / "asset-blob"
+            image.write_bytes(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="))
+            evidence = root / "EXPORT_MANIFEST.md"
+            evidence.write_text("approval addendum\n", encoding="utf-8")
+            manifest = root / "inventory.json"
+            output = root / "ingestion.json"
+            manifest.write_text(json.dumps({
+                "package_id": "witches-time-economy-source-v2",
+                "assets": [
+                    {
+                        "id": "witch-character-sheet-0001",
+                        "asset_dna_id": "WTE_ASSET_0001",
+                        "role": "character-design-sheet",
+                        "current_local_path": str(image),
+                        "binary_state": "available-local",
+                        "approval_state": "pending",
+                        "canon_state": "proposed",
+                        "release_eligible": False,
+                        "mime_type": "image/png",
+                        "pixel_width": 1,
+                        "pixel_height": 1,
+                        "bytes": image.stat().st_size,
+                    },
+                    {
+                        "id": "conversation-cleanshot-0001",
+                        "asset_dna_id": "WTE_ASSET_0002",
+                        "role": "conversation-screenshot",
+                        "current_local_path": None,
+                        "binary_state": "needs-export",
+                        "approval_state": "pending",
+                        "canon_state": "not-applicable",
+                        "release_eligible": False,
+                    },
+                    {
+                        "id": "drive-export-manifest-0001",
+                        "asset_dna_id": "WTE_DOC_0001",
+                        "role": "recovery-manifest",
+                        "current_local_path": str(evidence),
+                        "binary_state": "verified-local",
+                        "approval_state": "approved",
+                        "canon_state": "not-applicable",
+                        "release_eligible": False,
+                        "bytes": 1,
+                        "sha256": "0" * 64,
+                    },
+                ],
+            }), encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "inspect",
+                    "--source",
+                    str(manifest),
+                    "--output",
+                    str(output),
+                    "--property",
+                    "witches-time-economy",
+                    "--text-policy",
+                    "hybrid",
+                    "--approval",
+                    "approved",
+                    "--approval-evidence",
+                    "Publishing Desk source approval",
+                    "--approved-asset-id",
+                    "WTE_ASSET_0001",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            spec = json.loads(output.read_text(encoding="utf-8"))
+            approved, missing, changed_evidence = spec["assets"]
+            self.assertEqual(spec["state"], "ready-for-direction")
+            self.assertEqual(approved["source_path"], str(image.resolve()))
+            self.assertEqual(approved["approval_state"], "approved")
+            self.assertTrue(approved["release_eligible"])
+            self.assertEqual(missing["approval_state"], "pending")
+            self.assertFalse(missing["release_eligible"])
+            self.assertEqual(changed_evidence["integrity"], "mismatch")
+            self.assertIn("immutable source snapshot", changed_evidence["integrity_note"])
+
 
 if __name__ == "__main__":
     unittest.main()

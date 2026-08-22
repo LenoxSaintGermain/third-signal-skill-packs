@@ -30,7 +30,7 @@ LOCK_STATES = {"fluid", "guided", "locked"}
 MOTION_CLASSES = {"ambient", "narrative", "editorial", "silence"}
 TEXT_POLICIES = {"dynamic", "hybrid", "baked-editorial"}
 APPROVAL_STATES = {"approved", "finalized", "locked"}
-PASS_STATES = {"approved", "passed", "locked", "available-local", "finalized"}
+PASS_STATES = {"approved", "passed", "locked", "available-local", "verified-local", "finalized"}
 REJECT_STATES = {"rejected", "superseded", "failed", "inaccessible"}
 EVIDENCE_ROLES = {
     "rejected-candidate",
@@ -54,6 +54,7 @@ VISUAL_ROLES = {
     "wind-spread",
     "hero-master",
     "reader-art",
+    "character-design-sheet",
 }
 VISUAL_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif", ".svg"}
 CUE_KINDS = {"dialogue", "caption", "sfx", "document"}
@@ -201,14 +202,14 @@ def image_dimensions(path: Path) -> tuple[int, int] | None:
         with Image.open(path) as image:
             return int(image.width), int(image.height)
     except (ImportError, OSError):
-        suffix = path.suffix.lower()
-        if suffix == ".png":
-            return png_dimensions(path)
-        if suffix in {".jpg", ".jpeg"}:
-            return jpeg_dimensions(path)
-        if suffix == ".webp":
-            return webp_dimensions(path)
-        if suffix == ".svg":
+        for detector in (png_dimensions, jpeg_dimensions, webp_dimensions):
+            try:
+                dimensions = detector(path)
+            except (OSError, ValueError, struct.error):
+                dimensions = None
+            if dimensions:
+                return dimensions
+        if path.suffix.lower() == ".svg":
             return svg_dimensions(path)
     return None
 
@@ -271,6 +272,7 @@ def inspect_command(args: argparse.Namespace) -> None:
     title = str(args.title or pack.get("title") or package_id.replace("-", " ").title())
     asset_root = Path(args.asset_root).expanduser().resolve() if args.asset_root else source.parent
     used_ids: set[str] = set()
+    approved_asset_ids = set(args.approved_asset_id or [])
     records: list[dict[str, Any]] = []
     integrity_blockers: list[str] = []
 
@@ -280,30 +282,41 @@ def inspect_command(args: argparse.Namespace) -> None:
             continue
         role = str(raw.get("role") or raw.get("kind") or f"asset-{index}")
         asset_id = unique_asset_id(str(raw.get("id") or role), used_ids)
-        raw_path = str(raw.get("path") or "")
+        raw_path = str(raw.get("path") or raw.get("source_path") or raw.get("current_local_path") or "")
         resolved = resolve_source_path(raw_path, asset_root) if raw_path else None
-        status = str(raw.get("status") or "unknown").lower()
+        status = str(raw.get("status") or raw.get("binary_state") or "unknown").lower()
         rejected = status in REJECT_STATES or role in EVIDENCE_ROLES or "rejected" in raw_path.lower()
         visual = bool(resolved and is_visual(role, resolved))
         exists = bool(resolved and resolved.is_file())
         binary_state = str(raw.get("binary_state") or ("verified-local" if exists else "needs-export"))
-        release_eligible = visual and exists and status in PASS_STATES and not rejected
+        asset_dna_id = str(raw.get("asset_dna_id") or f"{package_id.upper().replace('-', '_')}::{asset_id.upper().replace('-', '_')}")
+        explicitly_approved = asset_id in approved_asset_ids or asset_dna_id in approved_asset_ids
+        asset_approval_state = str(
+            args.approval if explicitly_approved and args.approval else raw.get("approval_state") or "pending"
+        )
+        release_eligible = (
+            visual
+            and exists
+            and status in PASS_STATES
+            and asset_approval_state in APPROVAL_STATES
+            and not rejected
+        )
         contains_lettering = infer_contains_lettering(raw, role)
 
         record: dict[str, Any] = {
             "id": asset_id,
-            "asset_dna_id": str(raw.get("asset_dna_id") or f"{package_id.upper().replace('-', '_')}::{asset_id.upper().replace('-', '_')}"),
+            "asset_dna_id": asset_dna_id,
             "role": role,
             "source_path": str(resolved) if resolved else "",
             "filename": resolved.name if resolved else Path(raw_path).name,
-            "mime": mimetypes.guess_type(raw_path)[0] or "application/octet-stream",
+            "mime": str(raw.get("mime") or raw.get("mime_type") or mimetypes.guess_type(raw_path)[0] or "application/octet-stream"),
             "width": None,
             "height": None,
             "bytes": None,
             "sha256": None,
             "status": status,
             "binary_state": binary_state,
-            "approval_state": str(raw.get("approval_state") or "pending"),
+            "approval_state": asset_approval_state,
             "canon_state": str(raw.get("canon_state") or "not-applicable"),
             "contains_lettering": contains_lettering,
             "release_eligible": release_eligible,
@@ -330,8 +343,8 @@ def inspect_command(args: argparse.Namespace) -> None:
 
             declared_sha = raw.get("sha256")
             declared_bytes = raw.get("bytes")
-            declared_width = raw.get("width")
-            declared_height = raw.get("height")
+            declared_width = raw.get("width", raw.get("pixel_width"))
+            declared_height = raw.get("height", raw.get("pixel_height"))
             mismatches: list[str] = []
             if declared_sha and str(declared_sha).lower() != actual_sha:
                 mismatches.append("sha256")
@@ -346,7 +359,10 @@ def inspect_command(args: argparse.Namespace) -> None:
                 record["mismatches"] = mismatches
                 record["release_eligible"] = False
                 record["immutable"] = False
-                integrity_blockers.append(f"{asset_id} does not match declared {', '.join(mismatches)}")
+                if visual or explicitly_approved:
+                    integrity_blockers.append(f"{asset_id} does not match declared {', '.join(mismatches)}")
+                else:
+                    record["integrity_note"] = "non-visual evidence changed after the immutable source snapshot"
             else:
                 record["integrity"] = "verified"
         else:
@@ -392,6 +408,15 @@ def inspect_command(args: argparse.Namespace) -> None:
         blockers.append("package approval is pending or unsupported")
     if not approval_evidence.strip():
         blockers.append("approval evidence is missing")
+    if approved_asset_ids and approval_state not in APPROVAL_STATES:
+        blockers.append("asset approval override requires an approved package state")
+    unknown_approved_ids = approved_asset_ids - {
+        item["id"] for item in records
+    } - {
+        item["asset_dna_id"] for item in records
+    }
+    if unknown_approved_ids:
+        blockers.append(f"approved asset ids are missing from source inventory: {', '.join(sorted(unknown_approved_ids))}")
     if text_policy not in TEXT_POLICIES:
         blockers.append("text policy is unresolved; choose dynamic, hybrid, or baked-editorial")
     if text_policy == "dynamic" and not clean_assets:
@@ -843,6 +868,12 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_parser.add_argument("--text-policy", choices=["auto", *sorted(TEXT_POLICIES)], default="auto")
     inspect_parser.add_argument("--approval", choices=sorted(APPROVAL_STATES), help="Explicit approval supplied by user or approval artifact")
     inspect_parser.add_argument("--approval-evidence", help="Named artifact or instruction supporting explicit approval")
+    inspect_parser.add_argument(
+        "--approved-asset-id",
+        action="append",
+        default=[],
+        help="Asset inventory id or Asset DNA id explicitly covered by the approval; repeat for multiple assets",
+    )
     inspect_parser.add_argument("--force", action="store_true", help="Replace only the output spec; never touches source assets")
     inspect_parser.set_defaults(func=inspect_command)
 

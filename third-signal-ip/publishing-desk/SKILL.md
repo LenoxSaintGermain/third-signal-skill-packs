@@ -21,12 +21,13 @@ Use `scripts/publishing_desk.py` for every state change. Do not edit an item's `
 
 ## Pull the next item
 
-From the Signal Publishing repository, run:
+From the Signal Publishing repository, use the checked interpreter launcher:
 
 ```bash
-python3 skills/publishing-desk/scripts/publishing_desk.py \
-  --root publishing-desk next
+skills/publishing-desk/scripts/run.sh --root publishing-desk next
 ```
+
+The launcher rejects silent or broken Python shims before changing desk state. A zero exit with no desk JSON is not evidence that a command ran.
 
 If the result is `null`, report that the agent-actionable queue is empty. Items in `operator-review`, `uat-review`, `needs-recovery`, or terminal states intentionally do not appear as agent work.
 
@@ -60,6 +61,7 @@ When `next` returns a `source-approved` item:
 
 1. Run `begin-production`.
 2. Use `$signal-stage-library` to inspect the approved source manifest, direct beats/shots/anchors/cues, validate production readiness, and create a versioned immutable library pack.
+   For approval recorded after an immutable source package was created, pass the desk evidence with `--approval-evidence` and only the selected Asset DNA IDs with `--approved-asset-id`.
 3. Preserve approved pixels. Return source-production defects to the originating art workflow.
 4. Create a private preview and UAT report.
 5. Run `submit-uat` with the preview, UAT report, ingestion spec, and library-pack path.
@@ -90,4 +92,3 @@ Narration may be added during source review or production. It never bypasses sou
 ## Handoff
 
 Report the item ID, current state, latest package paths, blockers, next responsible actor, and every external action intentionally not taken.
-

@@ -21,8 +21,10 @@
 Set the reusable command prefix from the Signal Publishing repository:
 
 ```bash
-DESK="python3 skills/publishing-desk/scripts/publishing_desk.py --root publishing-desk"
+DESK="skills/publishing-desk/scripts/run.sh --root publishing-desk"
 ```
+
+`run.sh` selects a verified interpreter and refuses silent/broken Python shims. Every successful state-changing command must emit the resulting desk JSON; an empty response is a failed verification even when the shell reports exit `0`.
 
 Intake a conversation:
 
@@ -83,4 +85,3 @@ After resolving every blocker, run `begin-preflight` again from `needs-recovery`
 - Use absolute paths for external artifacts and repository-relative paths for tracked artifacts.
 - Store binary media in the content-addressed vault or approved Drive hierarchy, not in Git.
 - Do not hand-edit events or approvals.
-

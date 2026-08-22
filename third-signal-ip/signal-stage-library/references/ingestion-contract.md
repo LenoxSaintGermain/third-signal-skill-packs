@@ -163,6 +163,7 @@ Do not collapse `ready-for-direction` into `production-ready`. Approved art can 
 
 - `approval.state` must be `approved`, `finalized`, or `locked` for production.
 - `approval.evidence` must name an approval artifact, user instruction, or canonical manifest field.
+- A post-package approval must identify the selected inventory or Asset DNA IDs. Apply the approval as an ingestion overlay; do not rewrite the immutable source-package snapshot or promote every observed asset.
 - `policy.approved_pixels_immutable` must be `true`.
 - `policy.derivatives_only` must be `true`.
 - `policy.allow_generation` must be `false`.
