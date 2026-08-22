@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thirdsignal.example/schemas/publishing-desk-item-v1.json",
+  "title": "Publishing Desk Item",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "title",
+    "property_slug",
+    "priority",
+    "source",
+    "state",
+    "artifacts",
+    "gates",
+    "blockers",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "title": {"type": "string", "minLength": 1},
+    "property_slug": {"type": "string", "minLength": 1},
+    "priority": {"type": "integer", "minimum": 0, "maximum": 100},
+    "source": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": ["chatgpt-conversation", "codex-thread", "local-folder", "local-manifest"]
+        },
+        "conversation_id": {"type": "string"},
+        "thread_id": {"type": "string"},
+        "uri": {"type": "string"},
+        "path": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "state": {
+      "enum": [
+        "inbox",
+        "preflight-running",
+        "needs-recovery",
+        "operator-review",
+        "source-approved",
+        "production-running",
+        "uat-review",
+        "release-approved",
+        "published",
+        "on-hold",
+        "rejected"
+      ]
+    },
+    "artifacts": {"type": "object"},
+    "gates": {"type": "object"},
+    "blockers": {"type": "array", "items": {"type": "string"}},
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["at", "actor", "action", "from_state", "to_state"],
+        "properties": {
+          "at": {"type": "string"},
+          "actor": {"type": "string"},
+          "action": {"type": "string"},
+          "from_state": {"type": ["string", "null"]},
+          "to_state": {"type": "string"},
+          "evidence": {"type": "object"}
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

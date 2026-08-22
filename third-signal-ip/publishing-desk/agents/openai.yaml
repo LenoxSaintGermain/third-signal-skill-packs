@@ -1,0 +1,4 @@
+interface:
+  display_name: "Publishing Desk"
+  short_description: "Orchestrate recovery, approval, UAT, and release"
+  default_prompt: "Use $publishing-desk to pull the next story from the desk, recover a provenance-safe source package, and stop at the required operator gate."
