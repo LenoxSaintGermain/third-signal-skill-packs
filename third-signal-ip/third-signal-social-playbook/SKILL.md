@@ -15,6 +15,16 @@ metadata:
 
 This playbook contains the 5 master protocols for generating high-signal, high-retention copy across Third Signal Lab properties. Use these prompts when acting as the Social Media / Marketing Agent to reforge raw ideas into production-ready social assets.
 
+## Voice and attribution gate
+
+When an asset is sent, posted, signed, or spoken under Lenox's name, load
+`third-signal-voice-chatgpt` first and route it through Lane D. Compose outbound
+copy with `voice-draft-as-lenox`, then run `voice-anti-llm-tells`. Do not use
+`voice-reply-to-lenox` for ghostwritten artifacts. If the asset belongs to a
+Third Signal corporate surface rather than Lenox personally, keep the correct
+organizational attribution while still applying the house layer's claim and
+public-safety rules.
+
 ## The Aesthetic: "Bloomberg-meets-Apple"
 - **High-signal, zero fluff.** Anti-guru. No emoji spam.
 - **DIRTY Protocol:** Brutal, mechanical, industrial terminology.

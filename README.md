@@ -22,6 +22,7 @@ Key IP verticals included here:
 - **📂 Wearable & Open Notebook UI:** Workflows for auto-ingesting data from Limitless/OMI wearables and routing it directly into our vector-backed Command Cockpit.
 - **🎞️ Signal Stage Library:** A provenance-first pipeline that turns approved visual-story assets into directed cinematic runtime packs without altering approved art.
 - **🗂️ Publishing Desk:** An approval-gated story control plane for conversation intake, binary recovery, source review, private UAT, and release handoff.
+- **🗣️ Third Signal Voice Layer:** Routing, attribution, house language, epistemic controls, and mechanical anti-LLM rules for agent replies and artifacts written or spoken under Lenox's name.
 
 ## 🤝 For Partners and Clients
 
