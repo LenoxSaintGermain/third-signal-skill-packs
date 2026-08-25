@@ -23,6 +23,7 @@ Key IP verticals included here:
 - **🎞️ Signal Stage Library:** A provenance-first pipeline that turns approved visual-story assets into directed cinematic runtime packs without altering approved art.
 - **🗂️ Publishing Desk:** An approval-gated story control plane for conversation intake, binary recovery, source review, private UAT, and release handoff.
 - **🗣️ Third Signal Voice Layer:** Routing, attribution, house language, epistemic controls, and mechanical anti-LLM rules for agent replies and artifacts written or spoken under Lenox's name.
+- **🛡️ MCP Memory Guard:** Guarded macOS lifecycle controls that clean stale MCP trees and runaway ChatGPT/Codex renderers without terminating the owning app-server.
 
 ## 🤝 For Partners and Clients
 
