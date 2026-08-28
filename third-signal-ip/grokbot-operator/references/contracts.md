@@ -2,7 +2,7 @@
 
 Use `third-signal-agent-workforce@2` as the control-plane manifest schema. The example under `assets/hq-manifest.example.json` is intentionally executable by any adapter.
 
-The manifest includes provider-neutral `skills`, `schedules`, `approvals`, `artifacts`, `receipts`, and control-plane `events`. Provider conversations and browser sessions are never substitutes for these registries.
+The manifest includes provider-neutral `skills`, `schedules`, `approvals`, `artifacts`, `receipts`, and control-plane `events`. Every skill record declares whether its SHA-256 covers `SKILL.md` or the packaged bundle. Provider conversations and browser sessions are never substitutes for these registries.
 
 ## Role
 
@@ -60,6 +60,8 @@ Bind approval to:
 - rollback or correction path;
 - consumed status.
 
+The portable approval record includes `task_id`, `action_type`, `destination`, `account`, `content_hash`, full `asset_hashes`, exact `scope`, `rollback_or_correction`, authorization and expiration timestamps, status, and consumed state. A mutation receipt must match those fields exactly.
+
 Changing content, destination, account, asset bytes, or expiration invalidates the packet. Promotion authorization, campaign approval, and action-time public execution approval are separate gates.
 
 ## Receipt
@@ -70,7 +72,7 @@ Required fields:
 - `swarm_trace_id`, `role_id`, `adapter_id`, and `runtime_node_id`;
 - `status`, `input_hashes`, and structured `outputs`;
 - `mutations`, `approvals_used`, `validation`, and independent `verification`;
-- `started_at`, `finished_at`, and `next_action`.
+- `started_at`, `finished_at`, control-plane `received_at`, and `next_action`.
 
 Allowed receipt states: `ok | partial | noop | blocked | failed`.
 
@@ -78,6 +80,6 @@ Receipt filenames and identities must be append-only and include `task_id`, `run
 
 ## Control-plane event
 
-When an adapter disappears, the control plane—not the missing worker—records the interruption. Required fields are `event_id`, `event_type`, `task_id`, `lease_generation`, `recorded_at`, `source`, and `status`. A failover to generation N requires an append-only `lease.expired` event for generation N-1. Preserve the prior adapter as a `retired` tombstone or atomically change role defaults; never leave dangling provider references.
+When an adapter disappears, the control plane—not the missing worker—records the interruption. Required fields are `event_id`, `event_type`, `task_id`, `lease_generation`, `recorded_at`, `source`, and `status`. A `lease.expired` event also binds the prior holder adapter, runtime node, and fence, and must be independently verified. A failover to generation N requires that event for generation N-1. A receipt received after its bound lease-expiration event is rejected, including late `partial` reports. Preserve the prior adapter as a `retired` tombstone or atomically change role defaults; never leave dangling provider references.
 
 Do not run authorization tests by mutating production sidecars and relying on a `finally` rollback. Test against isolated copies, because crashes and concurrent jobs can expose temporary state.

@@ -31,6 +31,7 @@
       "skill_id": "grokbot-operator",
       "version": "1.0.0",
       "sha256": "c6e5822951a25daf2cffba0ea4150377bff8e1a75d4577ec387fad89579bc52e",
+      "hash_scope": "SKILL.md",
       "source_ref": "third-signal-skill-packs/third-signal-ip/grokbot-operator"
     }
   ],

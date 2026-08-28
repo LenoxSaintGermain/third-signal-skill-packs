@@ -72,6 +72,7 @@ release(task)
 - Mutation tasks must check for an existing destination receipt before retrying.
 - Read-only or proven-idempotent work may return to `queued`; unknown or non-repeatable side effects force `blocked`.
 - A fallback receives a new generation and token. Stale workers cannot report success or mutate after that fence advances.
+- Adapter route entries may remain offline for history and recovery. Queued work requires at least one currently eligible route; only the active lease holder must itself be online and eligible.
 - Provider conversations and browser sessions are never required to resume the job.
 
 Run a failover drill before declaring a permanent role portable: disable the preferred adapter, record lease expiry, claim one representative task with the fallback under a new fence, and produce an equivalent verified receipt without changing the role or task identity. Then prove a late result from the retired lease is rejected.

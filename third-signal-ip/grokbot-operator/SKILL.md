@@ -46,6 +46,16 @@ Use [references/contracts.md](references/contracts.md) for the task, role, appro
 
 Read [references/grokbot-adapter.md](references/grokbot-adapter.md) before configuring Bots, routines, connectors, browser accounts, or schedules.
 
+## Google Flow visual-production lane
+
+When a governed visual, graphic-novel, or music-video job targets Google Flow, invoke the provider-neutral google-flow skill at ../google-flow/SKILL.md and staff the visual-production-director role. GrokBot is the browser execution adapter; it must not choose rights, canon, release, publication, sharing, or permissions.
+
+Use a dedicated browser profile and a bounded Flow project. Keep the job in Observe, Shadow, or Prepare until the operator confirms the exact account, derivative-safe inputs, privacy/data-handling scope, project destination, model, credit ceiling, and action boundary. Stop on CAPTCHA, login ambiguity, unexpected sharing, or an unrecognized permission prompt.
+
+The Flow adapter must return downloaded local bytes, SHA-256 hashes, prompts/settings, observed project/account identifiers, credit usage or not_observed, continuity QA, and a portable receipt. Community-created Flow tools are optional experiments and never a production standard. Do not assume a public Flow API, stable selectors, Suno-specific licensing, or deterministic regeneration.
+
+The director role may prepare characters, ingredients, frames, scenes, and shot queues and hand proposed outputs to Signal Stage/private UAT. It may not canon.approve, rights.authorize, public.publish, production.deploy, permission.change, share, or delete.
+
 ## Provider failover
 
 The deletion test is mandatory: removing GrokBot must not remove the role, queue, schedule, instructions, approval history, or artifacts.
