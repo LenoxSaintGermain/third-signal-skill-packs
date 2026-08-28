@@ -1,5 +1,5 @@
 {
-  "schema": "third-signal-agent-workforce@1",
+  "schema": "third-signal-agent-workforce@2",
   "control_plane": {
     "control_plane_id": "third-signal-hq",
     "authority": "local-provider-neutral",
@@ -13,7 +13,8 @@
       "state": "shadow",
       "trust_boundary": "shared-computer",
       "capabilities": ["site.audit", "content.propose", "docs.propose", "research.scan"],
-      "credentials_ref": "provider-managed"
+      "credentials_ref": "provider-managed",
+      "last_heartbeat_at": null
     },
     {
       "adapter_id": "hermes",
@@ -21,7 +22,16 @@
       "state": "active",
       "trust_boundary": "local-profile",
       "capabilities": ["site.audit", "content.propose", "docs.propose", "preview.validate"],
-      "credentials_ref": "local-secret-manager"
+      "credentials_ref": "local-secret-manager",
+      "last_heartbeat_at": null
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "grokbot-operator",
+      "version": "1.0.0",
+      "sha256": "c6e5822951a25daf2cffba0ea4150377bff8e1a75d4577ec387fad89579bc52e",
+      "source_ref": "third-signal-skill-packs/third-signal-ip/grokbot-operator"
     }
   ],
   "roles": [
@@ -43,6 +53,8 @@
       "swarm_trace_id": "trace_public_surface_audit_example",
       "role_id": "public-surface-steward",
       "capability": "site.audit",
+      "effect": "read",
+      "operating_mode": "shadow",
       "classification": "internal",
       "public_impact": false,
       "approval_policy": "none",
@@ -53,9 +65,22 @@
       "preferred_adapters": ["grokbot"],
       "fallback_adapters": ["hermes"],
       "idempotency_key": "public-surface-audit-example-2026-08-28",
-      "lease": {"holder": null, "expires_at": null},
+      "resume_policy": "restart_current_inputs",
+      "replay_safety": "read_only",
+      "lease": {
+        "generation": 0,
+        "holder_adapter": null,
+        "runtime_node_id": null,
+        "fencing_token": null,
+        "claimed_at": null,
+        "expires_at": null
+      },
       "status": "queued"
     }
   ],
-  "receipts": []
+  "schedules": [],
+  "approvals": [],
+  "artifacts": [],
+  "receipts": [],
+  "events": []
 }

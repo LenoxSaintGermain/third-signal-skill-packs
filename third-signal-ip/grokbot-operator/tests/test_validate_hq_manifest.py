@@ -20,6 +20,48 @@ class ManifestValidationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.data = json.loads(EXAMPLE.read_text(encoding="utf-8"))
 
+    def completed_noop(self, data: dict | None = None) -> dict:
+        result = copy.deepcopy(data or self.data)
+        task = result["tasks"][0]
+        task["status"] = "completed"
+        task["lease"] = {
+            "generation": 1,
+            "holder_adapter": None,
+            "runtime_node_id": None,
+            "fencing_token": "fence-generation-1",
+            "claimed_at": None,
+            "expires_at": None,
+        }
+        result["receipts"] = [
+            {
+                "receipt_id": "receipt_example",
+                "task_id": task["task_id"],
+                "run_id": "run_example",
+                "attempt": 1,
+                "lease_generation": 1,
+                "fencing_token": "fence-generation-1",
+                "swarm_trace_id": task["swarm_trace_id"],
+                "role_id": task["role_id"],
+                "adapter_id": "grokbot",
+                "runtime_node_id": "grok-cloud-01",
+                "status": "noop",
+                "input_hashes": [],
+                "outputs": [],
+                "mutations": [],
+                "approvals_used": [],
+                "validation": ["read-only scan observed no change"],
+                "verification": {
+                    "status": "verified",
+                    "verifier": "hermes-reconciler",
+                    "verified_at": "2026-08-28T12:02:00Z",
+                },
+                "started_at": "2026-08-28T12:00:00Z",
+                "finished_at": "2026-08-28T12:01:00Z",
+                "next_action": "none",
+            }
+        ]
+        return result
+
     def test_example_is_valid(self) -> None:
         self.assertEqual([], module.validate_manifest(self.data))
 
@@ -38,37 +80,127 @@ class ManifestValidationTests(unittest.TestCase):
         errors = module.validate_manifest(self.data)
         self.assertTrue(any("fallback adapter does not exist" in error for error in errors))
 
-    def test_running_task_requires_lease(self) -> None:
+    def test_running_task_requires_complete_eligible_lease(self) -> None:
         self.data["tasks"][0]["status"] = "running"
         errors = module.validate_manifest(self.data)
-        self.assertTrue(any("requires a holder and lease expiry" in error for error in errors))
+        self.assertTrue(any("holder_adapter is required" in error for error in errors))
+        self.assertTrue(any("lease holder is not an eligible adapter" in error for error in errors))
+
+    def test_read_only_noop_receipt_allows_empty_mutation_arrays(self) -> None:
+        self.assertEqual([], module.validate_manifest(self.completed_noop()))
+
+    def test_offline_or_unassigned_lease_holder_is_rejected(self) -> None:
+        task = self.data["tasks"][0]
+        task["status"] = "running"
+        task["lease"] = {
+            "generation": 1,
+            "holder_adapter": "unknown-runtime",
+            "runtime_node_id": "unknown-runtime",
+            "fencing_token": "fence-generation-1",
+            "claimed_at": "2099-08-28T12:00:00Z",
+            "expires_at": "2099-08-28T12:10:00Z",
+        }
+        errors = module.validate_manifest(self.data)
+        self.assertTrue(any("not assigned" in error for error in errors))
+        self.assertTrue(any("not an eligible adapter" in error for error in errors))
+
+    def test_fallback_must_declare_task_capability(self) -> None:
+        self.data["adapters"][1]["capabilities"].remove("site.audit")
+        errors = module.validate_manifest(self.data)
+        self.assertTrue(any("fallback adapter is not eligible" in error for error in errors))
+
+    def test_receipt_is_bound_to_trace_role_and_completed_state(self) -> None:
+        data = self.completed_noop()
+        data["receipts"][0]["swarm_trace_id"] = "wrong-trace"
+        data["receipts"][0]["role_id"] = "wrong-role"
+        data["tasks"][0]["status"] = "queued"
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("swarm_trace_id does not match" in error for error in errors))
+        self.assertTrue(any("role_id does not match" in error for error in errors))
+        self.assertTrue(any("requires task status=completed" in error for error in errors))
+
+    def test_successful_receipt_rejects_stale_generation_and_fence(self) -> None:
+        data = self.completed_noop()
+        data["receipts"][0]["lease_generation"] = 2
+        data["receipts"][0]["fencing_token"] = "stale-fence"
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("stale lease generation" in error for error in errors))
+        self.assertTrue(any("stale fencing token" in error for error in errors))
+
+    def test_failover_generation_requires_expiration_event(self) -> None:
+        self.data["tasks"][0]["lease"]["generation"] = 2
+        errors = module.validate_manifest(self.data)
+        self.assertTrue(any("lease.expired event" in error for error in errors))
+
+    def test_verified_fallback_completion_with_fence_and_event_is_valid(self) -> None:
+        data = self.completed_noop()
+        task = data["tasks"][0]
+        task["lease"]["generation"] = 2
+        task["lease"]["fencing_token"] = "fence-generation-2"
+        receipt = data["receipts"][0]
+        receipt["adapter_id"] = "hermes"
+        receipt["runtime_node_id"] = "hermes-local-01"
+        receipt["lease_generation"] = 2
+        receipt["fencing_token"] = "fence-generation-2"
+        data["events"] = [
+            {
+                "event_id": "event_grok_lease_expired",
+                "event_type": "lease.expired",
+                "task_id": task["task_id"],
+                "lease_generation": 1,
+                "recorded_at": "2026-08-28T11:59:00Z",
+                "source": "third-signal-hq",
+                "status": "recorded",
+            }
+        ]
+        self.assertEqual([], module.validate_manifest(data))
+
+    def test_retired_default_adapter_requires_atomic_promotion(self) -> None:
+        self.data["adapters"][0]["state"] = "retired"
+        errors = module.validate_manifest(self.data)
+        self.assertTrue(any("default_adapter is retired" in error for error in errors))
 
     def test_mutation_receipt_requires_approval_and_full_hash(self) -> None:
-        data = copy.deepcopy(self.data)
-        data["receipts"] = [
+        data = self.completed_noop()
+        data["receipts"][0]["status"] = "ok"
+        data["receipts"][0]["outputs"] = [
+            {"artifact_ref": "missing-artifact", "sha256": "abc", "type": "proposal"}
+        ]
+        data["receipts"][0]["mutations"] = [
             {
-                "receipt_id": "receipt_example",
-                "task_id": "task_public_surface_audit_example",
-                "run_id": "run_example",
-                "attempt": 1,
-                "swarm_trace_id": "trace_public_surface_audit_example",
-                "role_id": "public-surface-steward",
-                "adapter_id": "grokbot",
-                "runtime_node_id": "grok-cloud-01",
-                "status": "ok",
-                "input_hashes": [],
-                "outputs": [{"artifact_ref": "artifact", "sha256": "abc", "type": "proposal"}],
-                "mutations": [{"type": "site.publish", "destination": "https://thirdsignal.ai/"}],
-                "approvals_used": [],
-                "validation": [],
-                "started_at": "2026-08-28T12:00:00Z",
-                "finished_at": "2026-08-28T12:01:00Z",
-                "next_action": "operator_review"
+                "type": "site.publish",
+                "destination": "https://thirdsignal.ai/",
+                "observed_result": "published",
+                "lease_generation": 1,
+                "fencing_token": "fence-generation-1",
             }
         ]
         errors = module.validate_manifest(data)
         self.assertTrue(any("full lowercase SHA-256" in error for error in errors))
+        self.assertTrue(any("artifact_ref does not exist" in error for error in errors))
         self.assertTrue(any("mutations require approvals_used" in error for error in errors))
+
+    def test_duplicate_idempotency_and_receipt_attempt_are_rejected(self) -> None:
+        data = self.completed_noop()
+        duplicate_task = copy.deepcopy(data["tasks"][0])
+        duplicate_task["task_id"] = "task_duplicate"
+        duplicate_task["swarm_trace_id"] = "trace_duplicate"
+        duplicate_task["status"] = "queued"
+        duplicate_task["lease"] = {
+            "generation": 0,
+            "holder_adapter": None,
+            "runtime_node_id": None,
+            "fencing_token": None,
+            "claimed_at": None,
+            "expires_at": None,
+        }
+        data["tasks"].append(duplicate_task)
+        duplicate_receipt = copy.deepcopy(data["receipts"][0])
+        duplicate_receipt["receipt_id"] = "receipt_duplicate"
+        data["receipts"].append(duplicate_receipt)
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("duplicate task idempotency_key" in error for error in errors))
+        self.assertTrue(any("duplicate receipt task/run/attempt" in error for error in errors))
 
 
 if __name__ == "__main__":

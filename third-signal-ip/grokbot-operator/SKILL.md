@@ -23,7 +23,7 @@ If the request does not explicitly cross an external-mutation boundary, remain i
 1. Identify the persistent Third Signal role and capability. Do not name the job after the current provider.
 2. Resolve the canonical task envelope and input artifacts. Recompute hashes when practical.
 3. Check the adapter's current capability, sign-in, connector scope, and shared-computer risk. A prior session is not proof of current access.
-4. Claim the task with an idempotency key and bounded lease. Never use a chat thread as the only task record.
+4. Claim the task with an idempotency key, monotonic lease generation, unique fencing token, and bounded expiry. Never use a chat thread as the only task record.
 5. Execute within the declared tools, classification, mutation boundary, and approval policy.
 6. Export artifacts out of the provider session. Provider chat history and screenshots are evidence, not institutional memory.
 7. Emit a portable receipt and independently verify its referenced files, hashes, URLs, commits, or publication records.
@@ -54,7 +54,10 @@ The deletion test is mandatory: removing GrokBot must not remove the role, queue
 - Register at least one fallback adapter for every persistent role.
 - Revalidate source artifacts and prior outputs before a fallback resumes work.
 - Use idempotency guards for posts, messages, deployments, purchases, and other non-repeatable actions.
-- Expired leases return a task to `queued` or `blocked`; they never prove completion.
+- An expired lease produces a control-plane `lease.expired` event; an unavailable adapter cannot be required to report its own crash.
+- Return an expired task to `queued` only when replay is proven read-only or idempotent and the prior side-effect state is known. Otherwise set it to `blocked` for operator resolution.
+- A fallback claims a new lease generation and fencing token. Reject every late receipt or mutation from an older generation.
+- Roles are never leased to providers; only tasks are. Removing an adapter retains a `retired` tombstone or atomically promotes the role default.
 
 Read [references/operating-model.md](references/operating-model.md) for control-plane ownership and [references/hq-staffing.md](references/hq-staffing.md) when assigning permanent back-office roles.
 
