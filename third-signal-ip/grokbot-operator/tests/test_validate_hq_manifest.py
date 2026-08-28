@@ -52,7 +52,8 @@ class ManifestValidationTests(unittest.TestCase):
                 "validation": ["read-only scan observed no change"],
                 "verification": {
                     "status": "verified",
-                    "verifier": "hermes-reconciler",
+                    "verifier_authority": "third-signal-hq",
+                    "verifier_runtime_node_id": "hq-reconciler-01",
                     "verified_at": "2026-08-28T12:02:00Z",
                 },
                 "started_at": "2026-08-28T12:00:00Z",
@@ -63,8 +64,76 @@ class ManifestValidationTests(unittest.TestCase):
         ]
         return result
 
+    def exact_mutation_fixture(self) -> dict:
+        data = self.completed_noop()
+        task = data["tasks"][0]
+        data["roles"][0]["capabilities"].append("site.publish")
+        data["adapters"][1]["capabilities"].append("site.publish")
+        task.update(
+            {
+                "capability": "site.publish",
+                "effect": "mutate",
+                "operating_mode": "active",
+                "public_impact": True,
+                "approval_policy": "preauthorized_exact_packet",
+                "allowed_tools": ["browser.submit"],
+                "denied_tools": ["production.deploy"],
+                "preferred_adapters": ["hermes"],
+                "fallback_adapters": [],
+                "replay_safety": "idempotent",
+                "resume_policy": "block_for_operator",
+            }
+        )
+        content_hash = "a" * 64
+        asset_hash = "b" * 64
+        data["approvals"] = [
+            {
+                "approval_id": "approval_exact_publish",
+                "task_id": task["task_id"],
+                "status": "approved",
+                "action_type": "site.publish",
+                "destination": "https://thirdsignal.ai/",
+                "account": "third-signal-production",
+                "authorized_by": "lenox",
+                "authorized_at": "2026-08-28T11:00:00Z",
+                "expires_at": "2099-08-28T11:00:00Z",
+                "content_hash": content_hash,
+                "asset_hashes": [asset_hash],
+                "scope": {"path": "/"},
+                "rollback_or_correction": "revert deployment receipt",
+                "consumed": True,
+                "consumed_by_receipt_id": "receipt_example",
+                "consumed_at": "2026-08-28T12:00:30Z",
+            }
+        ]
+        receipt = data["receipts"][0]
+        receipt["adapter_id"] = "hermes"
+        receipt["runtime_node_id"] = "hermes-local-01"
+        receipt["status"] = "ok"
+        receipt["approvals_used"] = ["approval_exact_publish"]
+        receipt["mutations"] = [
+            {
+                "approval_id": "approval_exact_publish",
+                "type": "site.publish",
+                "destination": "https://thirdsignal.ai/",
+                "account": "third-signal-production",
+                "content_hash": content_hash,
+                "asset_hashes": [asset_hash],
+                "scope": {"path": "/"},
+                "observed_result": "permalink verified",
+                "lease_generation": 1,
+                "fencing_token": "fence-generation-1",
+            }
+        ]
+        return data
+
     def test_example_is_valid(self) -> None:
         self.assertEqual([], module.validate_manifest(self.data))
+
+    def test_skill_hash_must_match_local_bytes(self) -> None:
+        self.data["skills"][0]["sha256"] = "0" * 64
+        errors = module.validate_manifest(self.data)
+        self.assertTrue(any("does not match local_path bytes" in error for error in errors))
 
     def test_provider_cannot_be_control_plane_authority(self) -> None:
         self.data["control_plane"]["authority"] = "grokbot"
@@ -178,7 +247,7 @@ class ManifestValidationTests(unittest.TestCase):
                 "event_type": "lease.expired",
                 "task_id": task["task_id"],
                 "lease_generation": 1,
-                "recorded_at": "2026-08-28T12:05:00Z",
+                "recorded_at": "2026-08-28T11:59:00Z",
                 "source": "third-signal-hq",
                 "status": "verified",
                 "holder_adapter": "grokbot",
@@ -195,8 +264,8 @@ class ManifestValidationTests(unittest.TestCase):
         late["status"] = "partial"
         late["lease_generation"] = 1
         late["fencing_token"] = "fence-generation-1"
-        late["started_at"] = "2026-08-28T12:00:00Z"
-        late["finished_at"] = "2026-08-28T12:04:00Z"
+        late["started_at"] = "2026-08-28T11:55:00Z"
+        late["finished_at"] = "2026-08-28T11:58:00Z"
         late["received_at"] = "2026-08-28T12:06:00Z"
         late["verification"] = {"status": "rejected"}
         data["receipts"].append(late)
@@ -250,63 +319,151 @@ class ManifestValidationTests(unittest.TestCase):
         self.assertTrue(any("mutations require approvals_used" in error for error in errors))
 
     def test_exact_approved_mutation_with_current_fence_is_valid(self) -> None:
+        self.assertEqual([], module.validate_manifest(self.exact_mutation_fixture()))
+
+    def test_expired_approval_cannot_authorize_mutation(self) -> None:
+        data = self.exact_mutation_fixture()
+        data["approvals"][0]["expires_at"] = "2026-08-28T11:30:00Z"
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("expired before the mutation finished" in error for error in errors))
+
+    def test_approval_cannot_be_reused_by_two_receipts(self) -> None:
+        data = self.exact_mutation_fixture()
+        duplicate = copy.deepcopy(data["receipts"][0])
+        duplicate["receipt_id"] = "receipt_second"
+        duplicate["run_id"] = "run_second"
+        duplicate["attempt"] = 2
+        data["receipts"].append(duplicate)
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("approval was reused" in error for error in errors))
+        self.assertTrue(any("bound to a different receipt" in error for error in errors))
+
+    def test_approval_scope_must_match_mutation(self) -> None:
+        data = self.exact_mutation_fixture()
+        data["approvals"][0]["scope"] = {"path": "/admin-only"}
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("not bound to an exact approval" in error for error in errors))
+
+    def test_verifier_must_be_control_plane_and_independent_runtime(self) -> None:
+        data = self.completed_noop()
+        verification = data["receipts"][0]["verification"]
+        verification["verifier_authority"] = "grokbot"
+        verification["verifier_runtime_node_id"] = data["receipts"][0]["runtime_node_id"]
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("performed by the control plane" in error for error in errors))
+        self.assertTrue(any("independent of the executing runtime" in error for error in errors))
+
+    def test_expiry_event_must_precede_fallback_execution(self) -> None:
         data = self.completed_noop()
         task = data["tasks"][0]
-        data["roles"][0]["capabilities"].append("site.publish")
-        data["adapters"][1]["capabilities"].append("site.publish")
-        task.update(
-            {
-                "capability": "site.publish",
-                "effect": "mutate",
-                "operating_mode": "active",
-                "public_impact": True,
-                "approval_policy": "preauthorized_exact_packet",
-                "allowed_tools": ["browser.submit"],
-                "denied_tools": ["production.deploy"],
-                "preferred_adapters": ["hermes"],
-                "fallback_adapters": [],
-                "replay_safety": "idempotent",
-                "resume_policy": "block_for_operator",
-            }
-        )
-        content_hash = "a" * 64
-        asset_hash = "b" * 64
-        data["approvals"] = [
-            {
-                "approval_id": "approval_exact_publish",
-                "task_id": task["task_id"],
-                "status": "approved",
-                "action_type": "site.publish",
-                "destination": "https://thirdsignal.ai/",
-                "account": "third-signal-production",
-                "authorized_by": "lenox",
-                "authorized_at": "2026-08-28T11:00:00Z",
-                "expires_at": "2099-08-28T11:00:00Z",
-                "content_hash": content_hash,
-                "asset_hashes": [asset_hash],
-                "scope": {"path": "/"},
-                "rollback_or_correction": "revert deployment receipt",
-                "consumed": True,
-            }
-        ]
+        task["lease"]["generation"] = 2
+        task["lease"]["fencing_token"] = "fence-generation-2"
         receipt = data["receipts"][0]
         receipt["adapter_id"] = "hermes"
-        receipt["runtime_node_id"] = "hermes-local-01"
-        receipt["status"] = "ok"
-        receipt["approvals_used"] = ["approval_exact_publish"]
-        receipt["mutations"] = [
+        receipt["lease_generation"] = 2
+        receipt["fencing_token"] = "fence-generation-2"
+        data["events"] = [
             {
-                "type": "site.publish",
-                "destination": "https://thirdsignal.ai/",
-                "account": "third-signal-production",
-                "content_hash": content_hash,
-                "asset_hashes": [asset_hash],
-                "observed_result": "permalink verified",
+                "event_id": "event_late_expiry",
+                "event_type": "lease.expired",
+                "task_id": task["task_id"],
                 "lease_generation": 1,
+                "recorded_at": "2026-08-28T12:01:00Z",
+                "source": "third-signal-hq",
+                "status": "verified",
+                "holder_adapter": "grokbot",
+                "runtime_node_id": "grok-cloud-01",
                 "fencing_token": "fence-generation-1",
             }
         ]
-        self.assertEqual([], module.validate_manifest(data))
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("fallback started before the prior lease was fenced" in error for error in errors))
+
+    def test_fallback_lease_claim_must_follow_expiry_event(self) -> None:
+        data = copy.deepcopy(self.data)
+        data["adapters"][0]["state"] = "offline"
+        task = data["tasks"][0]
+        task["status"] = "running"
+        task["lease"] = {
+            "generation": 2,
+            "holder_adapter": "hermes",
+            "runtime_node_id": "hermes-local-01",
+            "fencing_token": "fence-generation-2",
+            "claimed_at": "2099-08-28T11:58:00Z",
+            "expires_at": "2099-08-28T12:30:00Z",
+        }
+        data["events"] = [
+            {
+                "event_id": "event_late_expiry",
+                "event_type": "lease.expired",
+                "task_id": task["task_id"],
+                "lease_generation": 1,
+                "recorded_at": "2099-08-28T11:59:00Z",
+                "source": "third-signal-hq",
+                "status": "verified",
+                "holder_adapter": "grokbot",
+                "runtime_node_id": "grok-cloud-01",
+                "fencing_token": "fence-generation-1",
+            }
+        ]
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("fallback lease was claimed before" in error for error in errors))
+
+    def test_prior_generation_receipt_must_match_expired_fence(self) -> None:
+        data = self.completed_noop()
+        task = data["tasks"][0]
+        task["lease"]["generation"] = 2
+        task["lease"]["fencing_token"] = "fence-generation-2"
+        receipt = data["receipts"][0]
+        receipt["adapter_id"] = "hermes"
+        receipt["runtime_node_id"] = "hermes-local-01"
+        receipt["lease_generation"] = 2
+        receipt["fencing_token"] = "fence-generation-2"
+        data["events"] = [
+            {
+                "event_id": "event_grok_expired",
+                "event_type": "lease.expired",
+                "task_id": task["task_id"],
+                "lease_generation": 1,
+                "recorded_at": "2026-08-28T11:59:00Z",
+                "source": "third-signal-hq",
+                "status": "verified",
+                "holder_adapter": "grokbot",
+                "runtime_node_id": "grok-cloud-01",
+                "fencing_token": "fence-generation-1",
+            }
+        ]
+        prior = copy.deepcopy(receipt)
+        prior["receipt_id"] = "receipt_prior_partial"
+        prior["run_id"] = "run_prior_partial"
+        prior["attempt"] = 2
+        prior["adapter_id"] = "grokbot"
+        prior["runtime_node_id"] = "grok-cloud-01"
+        prior["status"] = "partial"
+        prior["lease_generation"] = 1
+        prior["fencing_token"] = "wrong-generation-1-fence"
+        prior["started_at"] = "2026-08-28T11:50:00Z"
+        prior["finished_at"] = "2026-08-28T11:55:00Z"
+        prior["received_at"] = "2026-08-28T11:58:00Z"
+        prior["verification"] = {"status": "pending"}
+        data["receipts"].append(prior)
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("does not match the expired lease holder/runtime/fence" in error for error in errors))
+
+    def test_one_use_approval_cannot_cover_two_mutations(self) -> None:
+        data = self.exact_mutation_fixture()
+        data["receipts"][0]["mutations"].append(copy.deepcopy(data["receipts"][0]["mutations"][0]))
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("one-use approval covers multiple mutations" in error for error in errors))
+
+    def test_verification_must_follow_receipt_and_use_registered_runtime(self) -> None:
+        data = self.completed_noop()
+        verification = data["receipts"][0]["verification"]
+        verification["verified_at"] = "2026-08-28T11:59:00Z"
+        verification["verifier_runtime_node_id"] = "unregistered-verifier"
+        errors = module.validate_manifest(data)
+        self.assertTrue(any("verification runtime does not exist" in error for error in errors))
+        self.assertTrue(any("verification predates control-plane receipt" in error for error in errors))
 
     def test_duplicate_idempotency_and_receipt_attempt_are_rejected(self) -> None:
         data = self.completed_noop()

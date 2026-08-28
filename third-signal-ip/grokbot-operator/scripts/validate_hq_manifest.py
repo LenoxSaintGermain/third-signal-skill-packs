@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -110,6 +111,7 @@ def validate_manifest(data: Any) -> list[str]:
         errors.append("control_plane.authority must be provider-neutral")
 
     adapters = _list(root.get("adapters"), "adapters", errors)
+    runtime_nodes = _list(root.get("runtime_nodes"), "runtime_nodes", errors)
     skills = _list(root.get("skills"), "skills", errors)
     roles = _list(root.get("roles"), "roles", errors)
     tasks = _list(root.get("tasks"), "tasks", errors)
@@ -120,6 +122,7 @@ def validate_manifest(data: Any) -> list[str]:
     events = _list(root.get("events"), "events", errors)
 
     adapter_ids = _unique_ids(adapters, "adapter_id", "adapters", errors)
+    runtime_node_ids = _unique_ids(runtime_nodes, "runtime_node_id", "runtime_nodes", errors)
     skill_ids = _unique_ids(skills, "skill_id", "skills", errors)
     role_ids = _unique_ids(roles, "role_id", "roles", errors)
     task_ids = _unique_ids(tasks, "task_id", "tasks", errors)
@@ -139,13 +142,42 @@ def validate_manifest(data: Any) -> list[str]:
         _parse_timestamp(adapter.get("last_heartbeat_at"), f"adapters[{index}].last_heartbeat_at", errors)
         adapters_by_id[str(adapter.get("adapter_id", ""))] = adapter
 
+    runtime_nodes_by_id: dict[str, dict[str, Any]] = {}
+    for index, raw in enumerate(runtime_nodes):
+        runtime = _object(raw, f"runtime_nodes[{index}]", errors)
+        _required(runtime, ("runtime_node_id", "authority", "state", "trust_boundary", "capabilities"), f"runtime_nodes[{index}]", errors)
+        if "adapter_id" not in runtime:
+            errors.append(f"runtime_nodes[{index}].adapter_id is required, and may be null for a control-plane node")
+        adapter_id = runtime.get("adapter_id")
+        if adapter_id is not None and adapter_id not in adapter_ids:
+            errors.append(f"runtime_nodes[{index}].adapter_id does not exist")
+        if adapter_id is None and runtime.get("authority") != control.get("control_plane_id"):
+            errors.append(f"runtime_nodes[{index}] provider-neutral node must belong to the control plane")
+        if adapter_id is not None and runtime.get("authority") != adapter_id:
+            errors.append(f"runtime_nodes[{index}].authority must match its adapter_id")
+        if runtime.get("state") not in ADAPTER_STATES:
+            errors.append(f"runtime_nodes[{index}].state is invalid")
+        runtime["capabilities"] = _nonempty_strings(runtime.get("capabilities"), f"runtime_nodes[{index}].capabilities", errors)
+        runtime_nodes_by_id[str(runtime.get("runtime_node_id", ""))] = runtime
+
     for index, raw in enumerate(skills):
         skill = _object(raw, f"skills[{index}]", errors)
-        _required(skill, ("skill_id", "version", "sha256", "hash_scope", "source_ref"), f"skills[{index}]", errors)
+        _required(skill, ("skill_id", "version", "sha256", "hash_scope", "source_ref", "local_path"), f"skills[{index}]", errors)
         if not SHA256_RE.fullmatch(str(skill.get("sha256", ""))):
             errors.append(f"skills[{index}].sha256 must be a full lowercase SHA-256")
         if skill.get("hash_scope") not in {"SKILL.md", "package"}:
             errors.append(f"skills[{index}].hash_scope must be SKILL.md or package")
+        skill_root = Path(__file__).resolve().parents[1]
+        local_path = skill_root / str(skill.get("local_path", ""))
+        try:
+            resolved_path = local_path.resolve(strict=True)
+            resolved_path.relative_to(skill_root)
+        except (OSError, ValueError):
+            errors.append(f"skills[{index}].local_path must resolve inside the skill package")
+        else:
+            actual_hash = hashlib.sha256(resolved_path.read_bytes()).hexdigest()
+            if actual_hash != skill.get("sha256"):
+                errors.append(f"skills[{index}].sha256 does not match local_path bytes")
 
     roles_by_id: dict[str, dict[str, Any]] = {}
     for index, raw in enumerate(roles):
@@ -175,6 +207,34 @@ def validate_manifest(data: Any) -> list[str]:
         role["capabilities"] = capabilities
         role["prohibited"] = prohibited
         roles_by_id[str(role.get("role_id", ""))] = role
+
+    expiry_events: dict[tuple[str, int], tuple[dict[str, Any], datetime | None]] = {}
+    for index, raw in enumerate(events):
+        event = _object(raw, f"events[{index}]", errors)
+        _required(event, ("event_id", "event_type", "task_id", "lease_generation", "recorded_at", "source", "status"), f"events[{index}]", errors)
+        if event.get("task_id") not in task_ids:
+            errors.append(f"events[{index}].task_id does not exist")
+        generation = event.get("lease_generation")
+        if not isinstance(generation, int) or isinstance(generation, bool) or generation < 0:
+            errors.append(f"events[{index}].lease_generation must be a non-negative integer")
+        recorded_at = _parse_timestamp(event.get("recorded_at"), f"events[{index}].recorded_at", errors, nullable=False)
+        if event.get("source") != control.get("control_plane_id"):
+            errors.append(f"events[{index}].source must be the control plane")
+        if event.get("status") not in EVENT_STATES:
+            errors.append(f"events[{index}].status is invalid")
+        if event.get("event_type") == "lease.expired":
+            _required(event, ("holder_adapter", "runtime_node_id", "fencing_token"), f"events[{index}]", errors)
+            if event.get("holder_adapter") not in adapter_ids:
+                errors.append(f"events[{index}].holder_adapter does not exist")
+            runtime = runtime_nodes_by_id.get(str(event.get("runtime_node_id")))
+            if runtime is None:
+                errors.append(f"events[{index}].runtime_node_id does not exist")
+            elif runtime.get("adapter_id") != event.get("holder_adapter"):
+                errors.append(f"events[{index}].runtime_node_id does not belong to holder_adapter")
+            if event.get("status") != "verified":
+                errors.append(f"events[{index}] lease.expired must be independently verified")
+            if isinstance(generation, int):
+                expiry_events[(str(event.get("task_id")), generation)] = (event, recorded_at)
 
     tasks_by_id: dict[str, dict[str, Any]] = {}
     idempotency_keys: set[str] = set()
@@ -256,10 +316,21 @@ def validate_manifest(data: Any) -> list[str]:
             holder_adapter = adapters_by_id.get(str(holder))
             if holder_adapter is None or not _adapter_is_eligible(holder_adapter, capability, operating_mode):
                 errors.append(f"tasks[{index}].lease holder is not an eligible adapter")
+            runtime = runtime_nodes_by_id.get(str(lease.get("runtime_node_id")))
+            if runtime is None:
+                errors.append(f"tasks[{index}].lease.runtime_node_id does not exist")
+            elif runtime.get("adapter_id") != holder:
+                errors.append(f"tasks[{index}].lease.runtime_node_id does not belong to holder_adapter")
             if claimed_at and expires_at and claimed_at >= expires_at:
                 errors.append(f"tasks[{index}].lease expires_at must be after claimed_at")
             if expires_at and expires_at <= datetime.now(timezone.utc):
                 errors.append(f"tasks[{index}].lease is expired")
+            if isinstance(generation, int) and generation > 1:
+                prior_expiry = expiry_events.get((str(task.get("task_id")), generation - 1))
+                if prior_expiry is None:
+                    errors.append(f"tasks[{index}] failover claim requires a control-plane lease.expired event")
+                elif prior_expiry[1] and claimed_at and prior_expiry[1] > claimed_at:
+                    errors.append(f"tasks[{index}] fallback lease was claimed before the prior lease was fenced")
         elif any(lease.get(field) is not None for field in ("holder_adapter", "runtime_node_id", "claimed_at", "expires_at")):
             errors.append(f"tasks[{index}] inactive work must not retain an active lease")
         tasks_by_id[str(task.get("task_id", ""))] = task
@@ -273,6 +344,7 @@ def validate_manifest(data: Any) -> list[str]:
             errors.append(f"schedules[{index}].capability is not granted to its role")
 
     approvals_by_id: dict[str, dict[str, Any]] = {}
+    approval_times: dict[str, tuple[datetime | None, datetime | None, datetime | None]] = {}
     for index, raw in enumerate(approvals):
         approval = _object(raw, f"approvals[{index}]", errors)
         _required(approval, ("approval_id", "task_id", "status", "action_type", "destination", "account", "authorized_by", "authorized_at", "expires_at", "content_hash", "asset_hashes", "scope", "rollback_or_correction", "consumed"), f"approvals[{index}]", errors)
@@ -293,7 +365,15 @@ def validate_manifest(data: Any) -> list[str]:
             errors.append(f"approvals[{index}].scope must be an exact action object")
         if not isinstance(approval.get("consumed"), bool):
             errors.append(f"approvals[{index}].consumed must be boolean")
-        approvals_by_id[str(approval.get("approval_id", ""))] = approval
+        consumed_at = None
+        if approval.get("consumed") is True:
+            _required(approval, ("consumed_by_receipt_id", "consumed_at"), f"approvals[{index}]", errors)
+            consumed_at = _parse_timestamp(approval.get("consumed_at"), f"approvals[{index}].consumed_at", errors, nullable=False)
+        elif approval.get("consumed_by_receipt_id") is not None or approval.get("consumed_at") is not None:
+            errors.append(f"approvals[{index}] unconsumed approval cannot carry consumption fields")
+        approval_id = str(approval.get("approval_id", ""))
+        approvals_by_id[approval_id] = approval
+        approval_times[approval_id] = (authorized_at, expires_at, consumed_at)
 
     artifacts_by_id: dict[str, dict[str, Any]] = {}
     for index, raw in enumerate(artifacts):
@@ -304,30 +384,8 @@ def validate_manifest(data: Any) -> list[str]:
         _parse_timestamp(artifact.get("created_at"), f"artifacts[{index}].created_at", errors, nullable=False)
         artifacts_by_id[str(artifact.get("artifact_id", ""))] = artifact
 
-    expiry_events: dict[tuple[str, int], tuple[dict[str, Any], datetime | None]] = {}
-    for index, raw in enumerate(events):
-        event = _object(raw, f"events[{index}]", errors)
-        _required(event, ("event_id", "event_type", "task_id", "lease_generation", "recorded_at", "source", "status"), f"events[{index}]", errors)
-        if event.get("task_id") not in task_ids:
-            errors.append(f"events[{index}].task_id does not exist")
-        generation = event.get("lease_generation")
-        if not isinstance(generation, int) or isinstance(generation, bool) or generation < 0:
-            errors.append(f"events[{index}].lease_generation must be a non-negative integer")
-        recorded_at = _parse_timestamp(event.get("recorded_at"), f"events[{index}].recorded_at", errors, nullable=False)
-        if event.get("source") != control.get("control_plane_id"):
-            errors.append(f"events[{index}].source must be the control plane")
-        if event.get("status") not in EVENT_STATES:
-            errors.append(f"events[{index}].status is invalid")
-        if event.get("event_type") == "lease.expired":
-            _required(event, ("holder_adapter", "runtime_node_id", "fencing_token"), f"events[{index}]", errors)
-            if event.get("holder_adapter") not in adapter_ids:
-                errors.append(f"events[{index}].holder_adapter does not exist")
-            if event.get("status") != "verified":
-                errors.append(f"events[{index}] lease.expired must be independently verified")
-            if isinstance(generation, int):
-                expiry_events[(str(event.get("task_id")), generation)] = (event, recorded_at)
-
     receipt_keys: set[tuple[Any, Any, Any]] = set()
+    used_approvals: set[str] = set()
     successful_verified_by_task: set[str] = set()
     for index, raw in enumerate(receipts):
         receipt = _object(raw, f"receipts[{index}]", errors)
@@ -346,6 +404,11 @@ def validate_manifest(data: Any) -> list[str]:
             errors.append(f"receipts[{index}].role_id does not exist")
         if receipt.get("adapter_id") not in adapter_ids:
             errors.append(f"receipts[{index}].adapter_id does not exist")
+        runtime = runtime_nodes_by_id.get(str(receipt.get("runtime_node_id")))
+        if runtime is None:
+            errors.append(f"receipts[{index}].runtime_node_id does not exist")
+        elif runtime.get("adapter_id") != receipt.get("adapter_id"):
+            errors.append(f"receipts[{index}].runtime_node_id does not belong to adapter_id")
         if receipt.get("status") not in RECEIPT_STATES:
             errors.append(f"receipts[{index}].status is invalid")
         attempt = receipt.get("attempt")
@@ -373,9 +436,19 @@ def validate_manifest(data: Any) -> list[str]:
             errors.append(f"receipts[{index}].finished_at must not precede started_at")
         if finished_at and received_at and finished_at > received_at:
             errors.append(f"receipts[{index}].received_at must not precede finished_at")
+        if isinstance(lease_generation, int) and lease_generation > 1:
+            prior_expiry = expiry_events.get((str(receipt.get("task_id")), lease_generation - 1))
+            if prior_expiry and prior_expiry[1] and started_at and prior_expiry[1] > started_at:
+                errors.append(f"receipts[{index}] fallback started before the prior lease was fenced")
         current_generation = task.get("lease", {}).get("generation") if task else None
         if task and isinstance(lease_generation, int) and isinstance(current_generation, int) and lease_generation < current_generation:
             expiry_event = expiry_events.get((str(receipt.get("task_id")), lease_generation))
+            if expiry_event and (
+                receipt.get("adapter_id") != expiry_event[0].get("holder_adapter")
+                or receipt.get("runtime_node_id") != expiry_event[0].get("runtime_node_id")
+                or receipt.get("fencing_token") != expiry_event[0].get("fencing_token")
+            ):
+                errors.append(f"receipts[{index}] does not match the expired lease holder/runtime/fence")
             if expiry_event and received_at and expiry_event[1] and received_at > expiry_event[1]:
                 errors.append(f"receipts[{index}] arrived after its lease was fenced")
 
@@ -405,12 +478,38 @@ def validate_manifest(data: Any) -> list[str]:
                 errors.append(f"receipts[{index}] approval is not approved: {approval_ref}")
             elif approval.get("consumed") is not True:
                 errors.append(f"receipts[{index}] approval is not marked consumed: {approval_ref}")
+            else:
+                approval_id = str(approval_ref)
+                if approval_id in used_approvals:
+                    errors.append(f"receipts[{index}] approval was reused: {approval_ref}")
+                used_approvals.add(approval_id)
+                if approval.get("consumed_by_receipt_id") != receipt.get("receipt_id"):
+                    errors.append(f"receipts[{index}] approval consumption is bound to a different receipt: {approval_ref}")
+                authorized_at, expires_at, consumed_at = approval_times.get(approval_id, (None, None, None))
+                if expires_at and finished_at and expires_at < finished_at:
+                    errors.append(f"receipts[{index}] approval expired before the mutation finished: {approval_ref}")
+                if authorized_at and consumed_at and consumed_at < authorized_at:
+                    errors.append(f"receipts[{index}] approval was consumed before authorization: {approval_ref}")
+                if expires_at and consumed_at and consumed_at > expires_at:
+                    errors.append(f"receipts[{index}] approval was consumed after expiration: {approval_ref}")
+                if started_at and consumed_at and consumed_at < started_at:
+                    errors.append(f"receipts[{index}] approval was consumed before execution started: {approval_ref}")
+                if finished_at and consumed_at and consumed_at > finished_at:
+                    errors.append(f"receipts[{index}] approval was consumed after execution finished: {approval_ref}")
+        receipt_mutation_approvals: set[str] = set()
         for mutation_index, raw_mutation in enumerate(mutations):
             mutation = _object(raw_mutation, f"receipts[{index}].mutations[{mutation_index}]", errors)
-            _required(mutation, ("type", "destination", "account", "content_hash", "asset_hashes", "observed_result", "lease_generation", "fencing_token"), f"receipts[{index}].mutations[{mutation_index}]", errors)
+            _required(mutation, ("approval_id", "type", "destination", "account", "content_hash", "asset_hashes", "scope", "observed_result", "lease_generation", "fencing_token"), f"receipts[{index}].mutations[{mutation_index}]", errors)
             if task and (mutation.get("lease_generation") != task.get("lease", {}).get("generation") or mutation.get("fencing_token") != task.get("lease", {}).get("fencing_token")):
                 errors.append(f"receipts[{index}].mutations[{mutation_index}] failed lease fencing")
-            matching_approval = any(
+            mutation_approval_id = str(mutation.get("approval_id", ""))
+            if mutation_approval_id in receipt_mutation_approvals:
+                errors.append(f"receipts[{index}] one-use approval covers multiple mutations: {mutation_approval_id}")
+            receipt_mutation_approvals.add(mutation_approval_id)
+            if mutation_approval_id not in approval_refs:
+                errors.append(f"receipts[{index}].mutations[{mutation_index}].approval_id is not listed in approvals_used")
+            approval = approvals_by_id.get(mutation_approval_id)
+            matching_approval = bool(
                 approval
                 and approval.get("task_id") == receipt.get("task_id")
                 and approval.get("action_type") == mutation.get("type")
@@ -418,7 +517,7 @@ def validate_manifest(data: Any) -> list[str]:
                 and approval.get("account") == mutation.get("account")
                 and approval.get("content_hash") == mutation.get("content_hash")
                 and approval.get("asset_hashes") == mutation.get("asset_hashes")
-                for approval in (approvals_by_id.get(str(ref)) for ref in approval_refs)
+                and approval.get("scope") == mutation.get("scope")
             )
             if not matching_approval:
                 errors.append(f"receipts[{index}].mutations[{mutation_index}] is not bound to an exact approval")
@@ -428,8 +527,19 @@ def validate_manifest(data: Any) -> list[str]:
         if verification.get("status") not in VERIFICATION_STATES:
             errors.append(f"receipts[{index}].verification.status is invalid")
         if verification.get("status") == "verified":
-            _required(verification, ("verifier", "verified_at"), f"receipts[{index}].verification", errors)
-            _parse_timestamp(verification.get("verified_at"), f"receipts[{index}].verification.verified_at", errors, nullable=False)
+            _required(verification, ("verifier_authority", "verifier_runtime_node_id", "verified_at"), f"receipts[{index}].verification", errors)
+            verified_at = _parse_timestamp(verification.get("verified_at"), f"receipts[{index}].verification.verified_at", errors, nullable=False)
+            if verification.get("verifier_authority") != control.get("control_plane_id"):
+                errors.append(f"receipts[{index}].verification must be performed by the control plane")
+            verifier_runtime = runtime_nodes_by_id.get(str(verification.get("verifier_runtime_node_id")))
+            if verifier_runtime is None:
+                errors.append(f"receipts[{index}].verification runtime does not exist")
+            elif verifier_runtime.get("authority") != control.get("control_plane_id") or "receipt.verify" not in verifier_runtime.get("capabilities", []) or verifier_runtime.get("state") != "active":
+                errors.append(f"receipts[{index}].verification runtime is not an active control-plane verifier")
+            if verification.get("verifier_runtime_node_id") == receipt.get("runtime_node_id"):
+                errors.append(f"receipts[{index}].verification must be independent of the executing runtime")
+            if verified_at and received_at and verified_at < received_at:
+                errors.append(f"receipts[{index}].verification predates control-plane receipt")
             if receipt.get("status") in {"ok", "noop"}:
                 successful_verified_by_task.add(str(receipt.get("task_id")))
 

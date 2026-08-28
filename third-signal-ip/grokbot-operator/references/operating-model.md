@@ -12,7 +12,9 @@ Third Signal HQ / Admin OS / Orbital
   approval ledger
   artifact vault
   receipt ledger
-  adapter health and routing
+  adapter and runtime-node health
+  provider-neutral verification nodes
+  routing and fencing
         |
         +-- GrokBot adapter
         +-- Hermes adapter

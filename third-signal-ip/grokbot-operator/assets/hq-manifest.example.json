@@ -26,12 +26,39 @@
       "last_heartbeat_at": null
     }
   ],
+  "runtime_nodes": [
+    {
+      "runtime_node_id": "grok-cloud-01",
+      "authority": "grokbot",
+      "adapter_id": "grokbot",
+      "state": "shadow",
+      "trust_boundary": "shared-computer",
+      "capabilities": ["site.audit", "content.propose", "docs.propose", "research.scan"]
+    },
+    {
+      "runtime_node_id": "hermes-local-01",
+      "authority": "hermes",
+      "adapter_id": "hermes",
+      "state": "active",
+      "trust_boundary": "local-profile",
+      "capabilities": ["site.audit", "content.propose", "docs.propose", "preview.validate"]
+    },
+    {
+      "runtime_node_id": "hq-reconciler-01",
+      "authority": "third-signal-hq",
+      "adapter_id": null,
+      "state": "active",
+      "trust_boundary": "provider-neutral-control-plane",
+      "capabilities": ["receipt.verify", "lease.expire"]
+    }
+  ],
   "skills": [
     {
       "skill_id": "grokbot-operator",
       "version": "1.0.0",
-      "sha256": "c6e5822951a25daf2cffba0ea4150377bff8e1a75d4577ec387fad89579bc52e",
+      "sha256": "1ddcacf77718bee4ad4d54dba636fe8ca055705c9b909bdae7d5b91ce59aab3c",
       "hash_scope": "SKILL.md",
+      "local_path": "SKILL.md",
       "source_ref": "third-signal-skill-packs/third-signal-ip/grokbot-operator"
     }
   ],
