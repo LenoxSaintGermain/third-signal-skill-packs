@@ -1,0 +1,61 @@
+{
+  "schema": "third-signal-agent-workforce@1",
+  "control_plane": {
+    "control_plane_id": "third-signal-hq",
+    "authority": "local-provider-neutral",
+    "projection_urls": ["https://thirdsignal.ai/#admin"],
+    "external_mutation_default": "operator_required"
+  },
+  "adapters": [
+    {
+      "adapter_id": "grokbot",
+      "kind": "cloud-agent-computer",
+      "state": "shadow",
+      "trust_boundary": "shared-computer",
+      "capabilities": ["site.audit", "content.propose", "docs.propose", "research.scan"],
+      "credentials_ref": "provider-managed"
+    },
+    {
+      "adapter_id": "hermes",
+      "kind": "local-agent-runtime",
+      "state": "active",
+      "trust_boundary": "local-profile",
+      "capabilities": ["site.audit", "content.propose", "docs.propose", "preview.validate"],
+      "credentials_ref": "local-secret-manager"
+    }
+  ],
+  "roles": [
+    {
+      "role_id": "public-surface-steward",
+      "department": "Admin OS",
+      "mission": "Keep approved Third Signal public surfaces accurate, current, and functional.",
+      "capabilities": ["site.audit", "content.propose", "docs.propose", "preview.validate"],
+      "prohibited": ["production.deploy", "canon.approve", "rights.authorize"],
+      "approval_policy": "operator_required_for_public_mutation",
+      "default_adapter": "grokbot",
+      "fallback_adapters": ["hermes"],
+      "required_skills": ["grokbot-operator"]
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "task_public_surface_audit_example",
+      "swarm_trace_id": "trace_public_surface_audit_example",
+      "role_id": "public-surface-steward",
+      "capability": "site.audit",
+      "classification": "internal",
+      "public_impact": false,
+      "approval_policy": "none",
+      "input_refs": ["https://thirdsignal.ai/"],
+      "output_contract": "site-audit@1",
+      "allowed_tools": ["browser.read", "http.get"],
+      "denied_tools": ["browser.submit", "production.deploy"],
+      "preferred_adapters": ["grokbot"],
+      "fallback_adapters": ["hermes"],
+      "idempotency_key": "public-surface-audit-example-2026-08-28",
+      "lease": {"holder": null, "expires_at": null},
+      "status": "queued"
+    }
+  ],
+  "receipts": []
+}
