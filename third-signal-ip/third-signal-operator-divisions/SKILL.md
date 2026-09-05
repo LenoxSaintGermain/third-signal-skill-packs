@@ -109,10 +109,7 @@ Content flywheel:
 1. Select idea from Signal Spark backlog or operator brief.
 2. Build source pack from repo docs, Agent Wiki claims, research notes, and approved artifacts.
 3. Produce NotebookLM-ready notebook packet when useful.
-4. Draft narrative: thesis, proof, storyboard, script, social cuts. When the
-   artifact is written under Lenox's name or intended to be spoken by him, load
-   `third-signal-voice-chatgpt`, use Lane D, and compose with
-   `voice-draft-as-lenox` plus `voice-anti-llm-tells`.
+4. Draft narrative: thesis, proof, storyboard, script, social cuts.
 5. Route through review: accuracy, public-safety, brand voice, rights/privacy.
 6. Publish only after explicit approval.
 7. Feed results back into Agent Wiki/Armory/Manifest through Librarian proposals.
