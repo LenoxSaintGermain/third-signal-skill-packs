@@ -24,6 +24,7 @@ Key IP verticals included here:
 - **🗂️ Publishing Desk:** An approval-gated story control plane for conversation intake, binary recovery, source review, private UAT, and release handoff.
 - **🗣️ Third Signal Voice Layer:** Routing, attribution, house language, epistemic controls, and mechanical anti-LLM rules for agent replies and artifacts written or spoken under Lenox's name.
 - **🛡️ MCP Memory Guard:** Guarded macOS lifecycle controls that clean stale MCP trees and runaway ChatGPT/Codex renderers without terminating the owning app-server.
+- **🛰️ GrokBot Operator:** Provider-neutral contracts for staffing Third Signal roles with GrokBot while preserving local authority, approval gates, portable artifacts, verified receipts, and Hermes/Codex failover.
 
 ## 🤝 For Partners and Clients
 

@@ -1,0 +1,6 @@
+interface:
+  display_name: "GrokBot Operator"
+  short_description: "Govern GrokBot as a portable execution adapter"
+  default_prompt: "Use $grokbot-operator to route this Third Signal task through GrokBot with portable contracts and verified receipts."
+policy:
+  allow_implicit_invocation: true
