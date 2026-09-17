@@ -1,4 +1,5 @@
 ---
+name: coe-cookie-emitter
 description: Deploy, utilize, and maintain the COE (Cookie Object Emitter) telemetry architecture across projects using GCP Secret Manager and Cloud KMS for cryptographically secure payload signing.
 ---
 
