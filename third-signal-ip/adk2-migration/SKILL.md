@@ -1,5 +1,5 @@
 ---
-name: adk2-migration
+name: ADK 2.0 Migration
 description: Upgrades legacy ADK 1.x agents and their storage layers to ADK 2.0 Alpha Graph/Coordinator standards while enforcing strict strict storage separation.
 ---
 
