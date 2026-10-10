@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "poc-harness screens",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "group", "title", "intent", "api", "dataLabel"],
+    "additionalProperties": false,
+    "properties": {
+      "id": { "type": "string", "pattern": "^[A-Z]{2,3}-[0-9]{2}$" },
+      "group": { "type": "string" },
+      "title": { "type": "string" },
+      "intent": { "type": "string", "description": "One line: what this screen is for." },
+      "api": { "enum": ["LIVE API", "PARTIAL", "PROPOSED", "POC ONLY"] },
+      "endpoint": { "type": ["string", "null"], "description": "Method and path, or null for POC ONLY." },
+      "dataLabel": { "enum": ["LIVE", "EXAMPLE", "MOCK", "MIXED"], "description": "Strongest honest label for figures on this screen." },
+      "liveCapture": { "type": ["string", "null"], "description": "Capture id or file, with date, or null." }
+    }
+  }
+}

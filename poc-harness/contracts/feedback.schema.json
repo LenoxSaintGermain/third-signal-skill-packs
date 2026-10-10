@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "poc-harness feedback export",
+  "type": "object",
+  "required": ["buildId", "reviewer", "exportedAt", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "buildId": { "type": "string" },
+    "reviewer": { "type": "string" },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["screenId", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "screenId": { "type": "string", "pattern": "^[A-Z]{2,3}-[0-9]{2}$" },
+          "status": { "enum": ["approved", "changes", "none"] },
+          "note": { "type": "string" },
+          "ts": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}
