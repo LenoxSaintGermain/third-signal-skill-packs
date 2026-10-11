@@ -1,6 +1,6 @@
 ---
 name: hermes-pilot-bridge
-description: Architecture and programmatic control of the Hermes Pilot desktop overlay (Donna's Desktop Body).
+description: LEGACY (being retired). Programmatic control of the Hermes Pilot overlay. Omi is now Donna's Desktop Body (see omi-desktop-body); use this only for the Pilot push bridge (notify/speak/ask), which Omi does not replace yet.
 trigger:
   - "notify via pilot"
   - "ask via pilot"
@@ -9,6 +9,10 @@ trigger:
   - "hermes pilot architecture"
 ---
 # Hermes Pilot Bridge & Dual Architecture
+
+> **Superseded 2026-10-10:** Omi replaced Hermes Pilot as the Desktop Body; read the `omi-desktop-body` skill first.
+> What is still unique to Pilot, and not replaced by Omi: the push bridge (`pilot_notify`, `pilot_speak`, `pilot_ask`) and the Operator Dashboard.
+> Everything below describes Pilot and applies only while the Pilot app is running.
 
 Hermes Pilot is the "Desktop Body" to Hermes' "Agent Mind".
 
