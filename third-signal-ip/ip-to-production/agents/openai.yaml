@@ -1,0 +1,4 @@
+interface:
+  display_name: "IP to Production"
+  short_description: "Original IP to finished comic and deployed reader"
+  default_prompt: "Use $ip-to-production to turn my IP source into a finished comic and verified reader site."

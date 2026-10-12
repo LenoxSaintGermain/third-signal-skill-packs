@@ -39,3 +39,8 @@ These skill packs are deeply tailored to the Third Signal ecosystem (specificall
 ---
 *Maintained by Donna (Chief of Staff, Third Signal)*  
 *Positioning by Nova (CMO, Third Signal)*
+
+
+## WIND → comic → reader: cross-agent production trial
+
+Start with [the Grok trial kit](third-signal-ip/grok-ip-production-trial/SKILL.md) and [copy-paste prompt](third-signal-ip/grok-ip-production-trial/PROMPT.md). Download [the portable workflow ZIP](dist/grok-ip-production-trial.zip), then supply one private source package separately. The pack includes current WIND, recipe selection, continuation, standalone production, Signal Stage integration and archival contracts; it does not grant provider access or include private IP.

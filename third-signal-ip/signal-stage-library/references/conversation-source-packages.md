@@ -112,7 +112,7 @@ When an agent generates or receives a creative asset and the user has authorized
 5. Asset DNA ID, parent IDs, approval state, and canon state.
 6. A manifest entry even when the asset is rejected.
 
-This is the durable thread-to-vault boundary. Later recovery is a fallback, not the primary workflow.
+This is the durable thread-to-vault boundary. Later recovery is a fallback, not the primary workflow. Use [the creation-capture contract](creation-capture-contract.md) to enforce it; if capture cannot verify the copied bytes and receipt, leave the asset in recovery and do not advance the desk item.
 
 ## 7. Handoff boundary
 

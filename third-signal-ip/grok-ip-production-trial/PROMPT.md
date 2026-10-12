@@ -1,0 +1,13 @@
+# Copy into Grok with the workflow ZIP and private source package attached
+
+Use the attached Third Signal production workflow to take the supplied IP from source to a finished comic and working reader. Start by reading grok-ip-production-trial/SKILL.md and TRIAL.md, then the referenced skill files. If your host has no skill loader, read the Markdown directly; do not say you invoked a tool that is not available.
+
+First inspect my brief, original image references, canon and authority records. State the tools you can actually use for image inspection, reference-based generation, original-file export, code execution, browser QA and deployment. Run a bounded pilot: one four-panel scene, two characters unless my brief specifies otherwise, in a separate test project. Use a standalone reader unless I supply and select the Signal Stage harness. If release audience or destination is missing, finish the source package and reader build, then ask only for that missing deployment decision. Do not assume public release or buy credits. Record any existing authorization without asking for it again.
+
+Run the recipe engine and WIND: situation before sheet, a hero moment that demonstrates the system's cost, evidence panels and a real consequence. Preserve the supplied character identities and project-specific visual skin. Build a script with clear panel jobs and a legible reversal before rendering. Produce actual finished art using a tool you have, inspect each panel, correct defects and preserve accepted masters plus deterministic lettering or the declared text policy. New ideas remain proposed unless my authority explicitly covers acceptance; do not rewrite established canon.
+
+Save originals, prompts and exposed generation metadata immediately. Deliver RUN.json, decisions, script/transcript, source masters, web derivatives, asset hashes, QA results and a portable reader. Track source, art, acceptance, integration, deployment and archive separately. Keep private provenance and source records out of the public build.
+
+Use authorized hosting only. Verify the resulting deployment status, exact live story route/anchor, image loads and desktop/phone reading. For a Signal Stage route use the real supplied runtime and preserve accepted pixels; the ingestion package alone is not a deployed graphic novel.
+
+Continue all work you can complete. If a required tool is absent, finish independent stages and name the exact blocked step; never substitute a mock URL or claim a package is published. Return the TRIAL.md scorecard with evidence, downloadable deliverables, actual live URL if deployed, observed costs and remaining gaps. No social posts in this trial.

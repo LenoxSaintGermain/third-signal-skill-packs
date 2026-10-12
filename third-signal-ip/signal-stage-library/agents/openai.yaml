@@ -1,4 +1,4 @@
 interface:
   display_name: "Signal Stage Library"
   short_description: "Recover and ingest cinematic story assets"
-  default_prompt: "Use $signal-stage-library to recover this thread into a provenance-safe source package, then identify what can advance to Signal Stage ingestion."
+  default_prompt: "First use $signal-recipe-engine to preserve the upstream narrative job and choose the direction recipe. Then use $signal-stage-library to recover this thread into a provenance-safe source package and identify what can advance to Signal Stage ingestion."

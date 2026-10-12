@@ -746,3 +746,8 @@ If fewer than eight answers are yes, redesign the spread.
 **Do not illustrate the lore.**
 
 **Find the moment in which the lore becomes unavoidable, then photograph that moment as though the world were real.**
+
+
+## Production entrypoint
+
+For the current executable production workflow, read [wind](../wind/SKILL.md), then [ip-to-production](../ip-to-production/SKILL.md). This original doctrine remains available for compatibility; the `wind` entrypoint adds recipe and continuity handoffs.
