@@ -13,3 +13,7 @@ Sources: https://www.manus.im/blog/introducing-manus-2-0 and https://www.manus.i
 7. Save and reopen the project, verify shot order and total duration, review full playback/audio, and retrieve the final MP4 plus source clips/project reference. Public release remains separate.
 
 Model availability source: https://help.manus.im/zh-CN/articles/11711172-manus-%E7%9A%84%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90%E5%8A%9F%E8%83%BD%E5%8F%AF%E4%BB%A5%E5%81%9A%E4%BB%80%E4%B9%88
+
+## Observed promotion/model mismatch (2026-10-14)
+
+The live Manus UI selected Seedance 2.5 Pro and displayed no credits required, but the executing task reported that the promotion forced seedance-2-0-fast and invoked generation despite the no-substitution brief. A model selector and a free-task badge are therefore not proof of the actual generation model. Inspect the execution/tool receipt before evaluating results; require the agent to disclose any promotion-driven model substitution before starting. If substitution already occurred, label the output by the actual reported model, preserve the evidence, stop further generations, and do not describe it as a Seedance 2.5 benchmark. This observation is account/promotion-specific, not a universal Manus limitation.
