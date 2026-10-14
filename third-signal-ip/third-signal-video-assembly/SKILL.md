@@ -1,7 +1,7 @@
 ---
 name: third-signal-video-assembly
 description: "Programmatic video editing pipeline bridging Studio-Pod trackers to FFmpeg and Remotion. Automates assembly, EDLs, and cinematic overlays."
-version: 1.0.0
+version: 1.1.0
 author: Donna
 platforms: [macos]
 metadata:
@@ -56,3 +56,8 @@ ffmpeg -i video.mp4 -i ambient.wav -filter_complex "[0:a]loudnorm=I=-16:TP=-1.5:
 3. The agent triggers FFmpeg to merge the clips.
 4. The agent triggers Remotion to bake the title cards and UI overlays on top of the merged output.
 5. The final asset is deposited in `/Volumes/Third Signal Lab HD/hermes/workspaces/Studio-Pod/pipeline/exports/`.
+
+
+## Manus Studio / Video Editor destination
+
+For a user-selected Manus edit, read [manus-integration](../manus-integration/SKILL.md). Supply immutable source clips, cast authority, hashes and EDL. Flow/OpenArt MP4 imports do not carry editable timelines or character registries. Verify saved clip order, transitions, aspect handling, duration and complete playback/audio before final export. Preserve original sources, the exported MP4, source shots and editable project reference when available. Record actual cost; do not assume a free generation includes unlimited assembly or rerolls. A private trailer draft does not promote canon or authorize social publishing.

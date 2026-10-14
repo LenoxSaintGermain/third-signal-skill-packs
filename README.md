@@ -44,3 +44,8 @@ These skill packs are deeply tailored to the Third Signal ecosystem (specificall
 ## WIND → comic → reader: cross-agent production trial
 
 Start with [the Grok trial kit](third-signal-ip/grok-ip-production-trial/SKILL.md) and [copy-paste prompt](third-signal-ip/grok-ip-production-trial/PROMPT.md). Download [the portable workflow ZIP](dist/grok-ip-production-trial.zip), then supply one private source package separately. The pack includes current WIND, recipe selection, continuation, standalone production, Signal Stage integration and archival contracts; it does not grant provider access or include private IP.
+
+
+## Manus 2.0 production
+
+[Manus integration](third-signal-ip/manus-integration/SKILL.md) now covers Studio/Video/Alchemy, API task lifecycle, installed-skill discovery, Hermes boundaries and Seedance 2.5 / MiniMax H3 prompting. [Portable Manus skill](dist/manus-integration.skill). Provider features and UI promotions must be verified on the active route; no private IP or credentials are included.

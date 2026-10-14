@@ -45,3 +45,8 @@ At each stage update the checkpoint. Continue through already authorized stages 
 ## Finish
 
 Return the live URL, finished installment and cast package paths, observed browser checks, release receipt, and actual limitations. If blocked, identify the last completed stage and one concrete next action; do not label the entire run complete. Social posting and ongoing schedules are separate outputs and require their own user request.
+
+
+## Optional trailer adaptation
+
+When explicitly requested, adapt accepted cast and story assets through [Manus integration](../manus-integration/SKILL.md) or another verified provider. Record a distinct motion run with source hashes, timed shot plan, cost scope and playback QA. Keep proposed trailer choreography separate from canon and website/public release. Exporting footage does not transfer the source provider's editable project.
