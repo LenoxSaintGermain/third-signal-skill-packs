@@ -1,0 +1,4 @@
+interface:
+  display_name: "WIND"
+  short_description: "Develop lore through situational spreads"
+  default_prompt: "First use $signal-recipe-engine to choose the recipe for this lore or graphic-novel task. Then use $wind to develop the situation, hero moment, evidence panels, and continuity handoff."

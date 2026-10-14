@@ -9,6 +9,12 @@ Treat recovery, ingestion, and production as separate gates:
 
 `conversation evidence → recoverable source package → approved source package → ingestion spec → directed runtime spec → library pack`
 
+## Recipe-engine dependency
+
+Invoke `$signal-recipe-engine` and read [the publishing pipeline profile](../signal-recipe-engine/references/publishing-pipeline.md) for every new story pack or graphic-novel spread entering Signal Stage. At this boundary, **Evidence Ledger** is the primary recipe and **Sequential Reveal** is the secondary recipe when the source is a panel/page sequence.
+
+The recipe controls the editorial intent and reveal order; it does not authorize visual changes. Signal Stage must preserve the approved source package, panel geometry, text policy, identity, continuity, and release boundary. If recipe metadata is absent, mark the direction handoff incomplete and request the upstream recipe block—do not infer it from filenames or regenerate the art.
+
 Never turn an asset into a runtime scene merely because a file exists. Approval, identity, integrity, and direction are separate facts.
 
 ## Core law
@@ -32,7 +38,7 @@ Create a pre-ingestion source package that records:
 - rejected and superseded attempts as evidence-only nodes;
 - a recovery queue and explicit blockers.
 
-Do not call a conversation package production-ready. If original bytes are unavailable, materialize the manifest and recovery queue, not a counterfeit replacement. At generation time, capture the original binary and tool metadata immediately when the user has authorized a destination; later chat extraction may expose only a preview.
+Do not call a conversation package production-ready. If original bytes are unavailable, materialize the manifest and recovery queue, not a counterfeit replacement. At generation time, capture the original binary and tool metadata immediately when the user has authorized a destination; later chat extraction may expose only a preview. Use [the creation-capture contract](references/creation-capture-contract.md) and `scripts/capture_at_creation.py`; a generation handoff is incomplete until the captured bytes, checksum, and receipt exist.
 
 ### 1. Establish the source boundary
 
@@ -92,6 +98,8 @@ For every beat, define:
 - lock state: art is normally `locked`; choreography may be `guided`.
 
 Use mechanical crops of the approved image. Never invent off-canvas content. A mobile crop may omit an object only when that omission is intentional and documented.
+
+For panel spreads, carry forward the upstream recipe's page promise, panel jobs, reveal order, and changed-state target. Choose `focus`, `sequence`, `mosaic`, or another runtime mode from that narrative job, not from aspect ratio alone.
 
 ### 5. Validate production readiness
 
@@ -167,5 +175,6 @@ Report:
 - beat/mode count;
 - package path and manifest paths;
 - validation result;
+- recipe metadata received from upstream and whether it was preserved;
 - recovery state, missing originals, and strongest known recovery handles;
 - actions intentionally not taken, such as deployment or canon assignment.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "IP to Signal Stage"
+  short_description: "Graphic novels in the deployed Signal Stage harness"
+  default_prompt: "Use $ip-to-signal-stage to produce my IP in the Signal Stage graphic-novel harness through verified deployment."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Signal Recipe Engine"
+  short_description: "Select and compose creative recipes"
+  default_prompt: "Use $signal-recipe-engine to diagnose this task, select the best recipe, and return a production-ready handoff."

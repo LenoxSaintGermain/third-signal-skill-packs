@@ -1,0 +1,4 @@
+interface:
+  display_name: "IP Continuation Desk"
+  short_description: "Resume IP work with evidence and next steps"
+  default_prompt: "Use $ip-continuation-desk to reconstruct this IP's completed, pending, blocked, and next work from the publishing vault, then return a concise resume brief."
