@@ -40,3 +40,5 @@ Inspect task messages, background jobs and actual artifacts. Generated, download
 For video verify identity, hands/weapon geometry, spatial continuity, action cause/effect, intended mechanic, audio, titles and duration. For sites verify live routes and images. Archive a receipt, remaining defects and next action. Public sharing, deployment and canon promotion require their own recorded user scope.
 
 Official references were checked 2026-10-14; inspect current schemas and live account limits before each execution.
+
+For Third Signal IP media delivery, use [the catalog handoff skill](../manus-ip-catalog-handoff/SKILL.md) to package outputs and distinguish cloud handoff from verified local ingestion.

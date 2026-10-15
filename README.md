@@ -49,3 +49,8 @@ Start with [the Grok trial kit](third-signal-ip/grok-ip-production-trial/SKILL.m
 ## Manus 2.0 production
 
 [Manus integration](third-signal-ip/manus-integration/SKILL.md) now covers Studio/Video/Alchemy, API task lifecycle, installed-skill discovery, Hermes boundaries and Seedance 2.5 / MiniMax H3 prompting. [Portable Manus skill](dist/manus-integration.skill). Provider features and UI promotions must be verified on the active route; no private IP or credentials are included.
+
+
+## Manus IP catalog delivery
+
+[Manus IP catalog handoff](third-signal-ip/manus-ip-catalog-handoff/SKILL.md) packages generated media with references, prompts, versions, checksums and approval status, then defines verified local ingestion into the IP library. [Uploadable Manus ZIP](dist/manus-ip-catalog-handoff.zip) contains `SKILL.md` at the archive root. Install through Manus Settings → Skills → Add → Upload a skill. Cloud production does not imply local catalog access.
